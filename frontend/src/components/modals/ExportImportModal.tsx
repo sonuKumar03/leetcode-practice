@@ -116,7 +116,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               </div>
               <button
                 onClick={handleExport}
-                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 shadow-sm transition cursor-pointer"
+                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-semibold text-white bg-brand hover:bg-brand-hover active:scale-95 shadow-sm transition cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Export JSON</span>
@@ -135,7 +135,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               type="file"
               accept=".json"
               onChange={handleFileChange}
-              className="w-full text-xs text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/15 file:text-indigo-600 dark:file:text-indigo-300 hover:file:bg-indigo-500/25 cursor-pointer"
+              className="w-full text-xs text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-subtle file:text-brand hover:file:bg-brand/20 cursor-pointer"
             />
 
             {importedFile && (

@@ -13,7 +13,7 @@ export const Input: React.FC<InputProps> = ({ icon, className = '', ...props }) 
         </div>
       )}
       <input
-        className={`w-full py-1.5 text-xs bg-surface border border-border rounded-xl text-text-main placeholder-text-subtle focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors ${
+        className={`w-full py-1.5 text-xs bg-surface border border-border rounded-xl text-text-main placeholder-text-subtle focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors ${
           icon ? 'pl-9 pr-3' : 'px-3'
         } ${className}`}
         {...props}

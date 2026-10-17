@@ -25,7 +25,7 @@ export function SegmentedControl<T extends string>({
       {options.map((option) => {
         const isActive = value === option.value;
 
-        let activeStyle = 'bg-indigo-600 text-white shadow-sm';
+        let activeStyle = 'bg-brand text-white shadow-sm';
         if (option.variant === 'easy') {
           activeStyle = 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40';
         } else if (option.variant === 'medium') {

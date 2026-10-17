@@ -21,7 +21,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseClasses =
-    'inline-flex items-center justify-center font-semibold transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer';
+    'inline-flex items-center justify-center font-semibold transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand';
 
   const sizeClasses = {
     sm: 'text-xs px-2.5 py-1.5 rounded-lg gap-1.5',
@@ -30,7 +30,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantClasses = {
     primary:
-      'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 border border-indigo-500/30',
+      'bg-brand hover:bg-brand-hover text-white shadow-xs border border-transparent font-semibold',
     secondary:
       'bg-surface hover:bg-surface-hover text-text-main border border-border shadow-xs',
     ghost:

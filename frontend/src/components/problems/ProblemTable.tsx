@@ -96,7 +96,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                     {/* Title */}
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-text-main group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                        <span className="font-semibold text-text-main group-hover:text-brand transition">
                           {problem.title}
                         </span>
                         {problem.paid_only && (
@@ -181,7 +181,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                             target="_blank"
                             rel="noreferrer"
                             title="Open in Doocs Wiki"
-                            className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 px-2 py-0.5 rounded bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 transition"
+                            className="text-[11px] font-bold text-brand hover:text-brand-hover px-2 py-0.5 rounded bg-brand-subtle border border-brand/30 transition"
                           >
                             Wiki
                           </a>

@@ -68,7 +68,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
                   href={problem.leetcode_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1"
+                  className="text-brand hover:underline flex items-center space-x-1"
                 >
                   <span>Open on LeetCode</span>
                   <ExternalLink className="w-3 h-3" />
@@ -87,7 +87,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Write your intuition, time/space complexity, edge cases, or code snippet..."
-            className="flex-1 min-h-[220px] w-full p-3 text-xs font-mono rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-amber-500 resize-none leading-relaxed transition-colors"
+            className="flex-1 min-h-[220px] w-full p-3 text-xs font-mono rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none leading-relaxed transition-colors"
           />
         </div>
 
@@ -104,7 +104,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-amber-600 hover:bg-amber-500 active:scale-95 shadow-md shadow-amber-600/30 transition disabled:opacity-50 cursor-pointer"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-brand hover:bg-brand-hover active:scale-95 shadow-md shadow-brand/20 transition disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving...' : 'Save Notes'}</span>

@@ -152,7 +152,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center space-x-3 mb-5">
-          <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
+          <div className="p-2 rounded-xl bg-brand-subtle text-brand border border-brand/30">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
@@ -191,10 +191,10 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                   value={id}
                   onChange={(e) => handleIdChange(e.target.value)}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
                 />
                 {autofilling && (
-                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none">
+                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand pointer-events-none">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   </div>
                 )}
@@ -211,7 +211,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                     type="button"
                     onClick={() => triggerAutofill(id)}
                     disabled={autofilling}
-                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1 cursor-pointer font-semibold"
+                    className="text-[11px] text-brand hover:underline flex items-center space-x-1 cursor-pointer font-semibold"
                   >
                     <Sparkles className="w-3 h-3 mr-0.5" />
                     <span>{autofilling ? 'Fetching...' : 'Auto-fill'}</span>
@@ -224,7 +224,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
               />
             </div>
           </div>
@@ -238,7 +238,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value as Difficulty)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors cursor-pointer"
               >
                 <option value="Easy" className="bg-surface text-text-main">Easy</option>
                 <option value="Medium" className="bg-surface text-text-main">Medium</option>
@@ -254,7 +254,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                 placeholder="https://leetcode.com/problems/..."
                 value={leetcodeUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
               />
             </div>
           </div>
@@ -269,7 +269,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
               placeholder="Graph, Breadth-First Search, Shortest Path"
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
             />
           </div>
 
@@ -283,7 +283,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
               placeholder="Google, Amazon, Meta / Facebook, Microsoft, Apple"
               value={companyTagsInput}
               onChange={(e) => setCompanyTagsInput(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
             />
           </div>
 
@@ -297,7 +297,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
               placeholder="e.g. Approach outline, recurrence relation, or complexity..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
+              className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors leading-relaxed"
             />
           </div>
 
@@ -313,7 +313,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
             <button
               type="submit"
               disabled={loading || autofilling}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 shadow-md shadow-indigo-600/30 transition disabled:opacity-50 cursor-pointer"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-brand hover:bg-brand-hover active:scale-95 shadow-md shadow-brand/20 transition disabled:opacity-50 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{loading ? 'Adding...' : 'Add to Catalog'}</span>

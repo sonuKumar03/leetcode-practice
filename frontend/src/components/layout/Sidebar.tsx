@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-64 bg-sidebar border-r border-border flex flex-col h-screen select-none flex-shrink-0 text-text-muted transition-colors">
       {/* Brand Header */}
       <div className="p-4 border-b border-border flex items-center space-x-3">
-        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-600/30">
+        <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shadow-sm shadow-brand/20">
           <Code2 className="w-4 h-4" />
         </div>
         <div>
@@ -70,12 +70,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={() => onSelectView('all')}
           className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
             activeView === 'all' && selectedTag === ''
-              ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border border-indigo-500/30'
+              ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
           <div className="flex items-center space-x-2">
-            <Layers className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+            <Layers className="w-4 h-4 text-brand" />
             <span>All Questions</span>
           </div>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
@@ -87,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={() => onSelectView('starred')}
           className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
             activeView === 'starred'
-              ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border border-indigo-500/30'
+              ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
@@ -104,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={() => onSelectView('in_progress')}
           className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
             activeView === 'in_progress'
-              ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border border-indigo-500/30'
+              ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
@@ -121,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={() => onSelectView('solved')}
           className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
             activeView === 'solved'
-              ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border border-indigo-500/30'
+              ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
@@ -143,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {selectedTag && (
             <button
               onClick={() => onSelectTag('')}
-              className="text-indigo-600 dark:text-indigo-400 hover:underline text-[10px] font-semibold cursor-pointer"
+              className="text-brand hover:underline text-[10px] font-semibold cursor-pointer"
             >
               Clear Filter
             </button>
@@ -151,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Tab Switcher: Topics vs Companies */}
-        <div className="flex items-center p-0.5 bg-surface-hover rounded-lg mb-2 flex-shrink-0 text-[11px] font-semibold border border-border">
+        <div className="flex items-center p-0.5 bg-surface rounded-lg mb-2 flex-shrink-0 text-[11px] font-semibold border border-border">
           <button
             onClick={() => {
               setCategoryType('topics');
@@ -159,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}
             className={`flex-1 py-1 rounded-md transition cursor-pointer text-center ${
               categoryType === 'topics'
-                ? 'bg-surface text-text-main shadow-xs font-bold'
+                ? 'bg-surface-active text-text-main shadow-xs font-bold'
                 : 'text-text-muted hover:text-text-main'
             }`}
           >
@@ -172,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}
             className={`flex-1 py-1 rounded-md transition cursor-pointer text-center ${
               categoryType === 'companies'
-                ? 'bg-surface text-text-main shadow-xs font-bold'
+                ? 'bg-surface-active text-text-main shadow-xs font-bold'
                 : 'text-text-muted hover:text-text-main'
             }`}
           >
@@ -207,9 +207,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={t.id}
                   onClick={() => onSelectTag(active ? '' : t.slug)}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-2 py-1 rounded-md text-xs transition cursor-pointer ${
                     active
-                      ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border border-indigo-500/30'
+                      ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
                       : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
                   }`}
                 >
