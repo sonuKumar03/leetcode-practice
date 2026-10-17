@@ -17,7 +17,6 @@ export function App() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Filters state
   const [selectedTag, setSelectedTag] = useState<string>('');
@@ -143,15 +142,6 @@ export function App() {
     await Promise.all([loadMetadata(), loadProblems()]);
   };
 
-  const handleRefresh = async () => {
-    try {
-      setIsRefreshing(true);
-      await Promise.all([loadMetadata(), loadProblems()]);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   const handlePaidToggle = () => {
     if (paidOnly === undefined) setPaidOnly(false);
     else if (paidOnly === false) setPaidOnly(true);
@@ -160,7 +150,7 @@ export function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#080B11] text-slate-100 font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#090C15] text-slate-100 font-sans">
       {/* Sidebar: Navigation, Spotlight, Views, Categories */}
       <Sidebar
         tags={tags}
@@ -177,12 +167,10 @@ export function App() {
           setPage(1);
         }}
         stats={stats}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
-        onOpenBackupModal={() => setIsBackupModalOpen(true)}
       />
 
       {/* Main Workspace */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#080B11]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#090C15]">
         {/* Sticky Toolbar & Progress Header */}
         <TopHeader
           stats={stats}
@@ -211,12 +199,12 @@ export function App() {
           onPaidToggle={handlePaidToggle}
           sortBy={sortBy}
           onSortChange={setSortBy}
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
+          onOpenBackupModal={() => setIsBackupModalOpen(true)}
         />
 
         {/* Content Table */}
-        <main className="flex-1 overflow-y-auto flex flex-col bg-[#080B11]">
+        <main className="flex-1 overflow-y-auto flex flex-col bg-[#090C15]">
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-3">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent" />

@@ -7,12 +7,10 @@ import {
   CheckCircle2,
   Layers,
   Search,
-  Plus,
-  DownloadCloud,
-  ExternalLink,
   Flame,
 } from 'lucide-react';
 import type { Tag, Stats } from '../../types';
+import { Input } from '../../design-system/components/Input';
 
 interface SidebarProps {
   tags: Tag[];
@@ -23,8 +21,6 @@ interface SidebarProps {
   isStarredFilter: boolean;
   onToggleStarred: () => void;
   stats: Stats | null;
-  onOpenAddModal: () => void;
-  onOpenBackupModal: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -36,8 +32,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isStarredFilter,
   onToggleStarred,
   stats,
-  onOpenAddModal,
-  onOpenBackupModal,
 }) => {
   const [tagSearch, setTagSearch] = useState('');
 
@@ -62,30 +56,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
 
   return (
-    <aside className="w-72 bg-[#0C101A] border-r border-[#1B2333] flex flex-col h-screen select-none flex-shrink-0 text-slate-300">
-      {/* Brand & App Name */}
-      <div className="p-4 border-b border-[#1B2333] flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
-            <Code2 className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-1.5">
-              <span className="font-bold text-sm text-white tracking-tight">LeetTracker</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                PRO
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500">Doocs & LeetCode Practice</p>
-          </div>
+    <aside className="w-64 bg-[#0A0D18] border-r border-[#1B2338] flex flex-col h-screen select-none flex-shrink-0 text-slate-300">
+      {/* Brand */}
+      <div className="p-4 border-b border-[#1B2338] flex items-center space-x-3">
+        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-600/30">
+          <Code2 className="w-4 h-4" />
+        </div>
+        <div>
+          <span className="font-bold text-sm text-white tracking-tight">LeetTracker</span>
         </div>
       </div>
 
       {/* Main Nav Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-6">
+      <div className="flex-1 overflow-y-auto p-3 space-y-5">
         {/* Quick Views */}
         <div className="space-y-1">
-          <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
             Views
           </div>
 
@@ -95,17 +81,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onSelectStatus('All');
               if (isStarredFilter) onToggleStarred();
             }}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
               selectedTag === '' && statusFilter === 'All' && !isStarredFilter
                 ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-[#151C2C]'
+                : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
-            <div className="flex items-center space-x-2.5">
+            <div className="flex items-center space-x-2">
               <Layers className="w-4 h-4 text-indigo-400" />
               <span>All Problems</span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#161E2E] text-slate-400">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#131A2A] text-slate-400">
               {stats?.total_problems || 4033}
             </span>
           </button>
@@ -116,13 +102,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onSelectTag('k-shortest-paths');
               onSelectStatus('All');
             }}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
               selectedTag === 'k-shortest-paths'
-                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-sm shadow-amber-500/10'
+                ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-sm'
                 : 'text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10'
             }`}
           >
-            <div className="flex items-center space-x-2.5">
+            <div className="flex items-center space-x-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span className="font-semibold">k-Shortest Paths</span>
             </div>
@@ -134,17 +120,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Starred */}
           <button
             onClick={onToggleStarred}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
               isStarredFilter
                 ? 'bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-[#151C2C]'
+                : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
-            <div className="flex items-center space-x-2.5">
+            <div className="flex items-center space-x-2">
               <Star className="w-4 h-4 text-amber-400 fill-amber-400/30" />
               <span>Starred</span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#161E2E] text-slate-400">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#131A2A] text-slate-400">
               {stats?.starred_problems || 0}
             </span>
           </button>
@@ -152,17 +138,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* In Progress */}
           <button
             onClick={() => onSelectStatus(statusFilter === 'in_progress' ? 'All' : 'in_progress')}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
               statusFilter === 'in_progress'
                 ? 'bg-sky-500/20 text-sky-300 font-semibold border border-sky-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-[#151C2C]'
+                : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
-            <div className="flex items-center space-x-2.5">
+            <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-sky-400" />
               <span>In Progress</span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#161E2E] text-slate-400">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#131A2A] text-slate-400">
               {stats?.in_progress_problems || 0}
             </span>
           </button>
@@ -170,27 +156,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Solved */}
           <button
             onClick={() => onSelectStatus(statusFilter === 'solved' ? 'All' : 'solved')}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
               statusFilter === 'solved'
                 ? 'bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-[#151C2C]'
+                : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
-            <div className="flex items-center space-x-2.5">
+            <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Solved</span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#161E2E] text-emerald-400/90 font-bold">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#131A2A] text-emerald-400 font-bold">
               {stats?.solved_problems || 0}
             </span>
           </button>
         </div>
 
-        {/* Curated Categories */}
+        {/* Curated Algorithm Categories */}
         <div className="space-y-1">
-          <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-1">
+          <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center space-x-1">
             <Flame className="w-3 h-3 text-orange-400" />
-            <span>Graph & Algorithms</span>
+            <span>Key Algorithms</span>
           </div>
           {spotlightTags
             .filter((t) => !t.isFocus)
@@ -201,15 +187,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={item.slug}
                   onClick={() => onSelectTag(active ? '' : item.slug)}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition ${
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
                     active
                       ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
-                      : 'text-slate-400 hover:text-white hover:bg-[#151C2C]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
                   }`}
                 >
                   <span className="truncate">{item.name}</span>
                   {matchingTag && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#161E2E] text-slate-400">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#131A2A] text-slate-400">
                       {matchingTag.problem_count}
                     </span>
                   )}
@@ -218,35 +204,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
         </div>
 
-        {/* All Tags Searchable List */}
-        <div className="space-y-2 pt-2 border-t border-[#1B2333]">
+        {/* Search All Tags */}
+        <div className="space-y-2 pt-2 border-t border-[#1B2338]">
           <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
-            <span>All Categories</span>
-            <span className="text-slate-500">{tags.length}</span>
+            <span>All Tags ({tags.length})</span>
           </div>
 
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search all 178 tags..."
-              value={tagSearch}
-              onChange={(e) => setTagSearch(e.target.value)}
-              className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-[#131926] border border-[#212C40] rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
-            />
-          </div>
+          <Input
+            placeholder="Search tags..."
+            value={tagSearch}
+            onChange={(e) => setTagSearch(e.target.value)}
+            icon={<Search className="w-3 h-3" />}
+          />
 
-          <div className="max-h-52 overflow-y-auto space-y-0.5 pr-1">
+          <div className="max-h-56 overflow-y-auto space-y-0.5 pr-1">
             {filteredTags.map((t) => {
               const active = selectedTag === t.slug;
               return (
                 <button
                   key={t.id}
                   onClick={() => onSelectTag(active ? '' : t.slug)}
-                  className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs transition ${
+                  className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs transition cursor-pointer ${
                     active
                       ? 'bg-indigo-600/20 text-indigo-300 font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#151C2C]'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#141B2B]'
                   }`}
                 >
                   <span className="truncate text-left">{t.name}</span>
@@ -257,37 +238,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               );
             })}
           </div>
-        </div>
-      </div>
-
-      {/* Footer Actions */}
-      <div className="p-3 border-t border-[#1B2333] space-y-2 bg-[#090D15]">
-        <button
-          onClick={onOpenAddModal}
-          className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition active:scale-[0.98]"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Custom Problem</span>
-        </button>
-
-        <div className="flex items-center space-x-2 pt-1 text-xs">
-          <button
-            onClick={onOpenBackupModal}
-            className="flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-lg bg-[#151C2C] hover:bg-[#1E293B] text-slate-300 transition text-[11px]"
-          >
-            <DownloadCloud className="w-3.5 h-3.5" />
-            <span>Backup</span>
-          </button>
-
-          <a
-            href="https://leetcode.doocs.org/en/tags/#tag:k-shortest-paths"
-            target="_blank"
-            rel="noreferrer"
-            className="flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-lg bg-[#151C2C] hover:bg-[#1E293B] text-slate-300 transition text-[11px]"
-          >
-            <span>Wiki</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
         </div>
       </div>
     </aside>
