@@ -1,0 +1,13 @@
+{
+  "name": "leetcode-practice-tracker",
+  "version": "1.0.0",
+  "description": "Modular LeetCode question scraper and practice tracker with SQLite",
+  "scripts": {
+    "dev:backend": "cd backend && python3 run.py",
+    "dev:frontend": "cd frontend && npm run dev",
+    "scrape": "cd backend && python3 -m app.services.scraper_service",
+    "build": "cd frontend && npm run build"
+  },
+  "keywords": ["leetcode", "tracker", "k-shortest-paths", "sqlite", "fastapi", "react"],
+  "license": "MIT"
+}
