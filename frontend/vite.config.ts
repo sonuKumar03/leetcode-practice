@@ -9,7 +9,9 @@ export default defineConfig({
     react()
   ],
   server: {
-    port: 5173,
+    port: 3000,
+    strictPort: true,
+    host: '127.0.0.1',
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',
