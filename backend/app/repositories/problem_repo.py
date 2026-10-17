@@ -11,6 +11,7 @@ class ProblemRepository:
         title: str,
         difficulty: str = "Medium",
         tags: Optional[List[str]] = None,
+        company_tags: Optional[List[str]] = None,
         leetcode_url: Optional[str] = None,
         doocs_url: Optional[str] = None,
         notes: Optional[str] = None,
@@ -38,7 +39,15 @@ class ProblemRepository:
 
         if tags:
             for tag_name in tags:
-                tag_id = TagRepository.get_or_create_tag(conn, tag_name)
+                tag_id = TagRepository.get_or_create_tag(conn, tag_name, tag_type="topic")
+                conn.execute(
+                    "INSERT OR IGNORE INTO problem_tags (problem_id, tag_id) VALUES (?, ?)",
+                    (problem_id, tag_id)
+                )
+
+        if company_tags:
+            for comp_name in company_tags:
+                tag_id = TagRepository.get_or_create_tag(conn, comp_name, tag_type="company")
                 conn.execute(
                     "INSERT OR IGNORE INTO problem_tags (problem_id, tag_id) VALUES (?, ?)",
                     (problem_id, tag_id)

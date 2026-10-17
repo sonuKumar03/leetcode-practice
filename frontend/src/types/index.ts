@@ -56,6 +56,7 @@ export interface NewProblemPayload {
   title: string;
   difficulty: Difficulty;
   tags: string[];
+  company_tags?: string[];
   leetcode_url?: string;
   doocs_url?: string;
   notes?: string;

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, Plus, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Plus, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import type { Difficulty, NewProblemPayload } from '../../types';
+import { problemsApi } from '../../api/problemsApi';
 
 interface AddQuestionModalProps {
   isOpen: boolean;
@@ -16,13 +17,88 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
   const [id, setId] = useState('');
   const [title, setTitle] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('Medium');
-  const [tagsInput, setTagsInput] = useState('k-Shortest Paths, Graph');
+  const [tagsInput, setTagsInput] = useState('');
+  const [companyTagsInput, setCompanyTagsInput] = useState('');
   const [leetcodeUrl, setLeetcodeUrl] = useState('');
   const [notes, setNotes] = useState('');
+
   const [loading, setLoading] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
+  const [autofillSuccess, setAutofillSuccess] = useState('');
   const [error, setError] = useState('');
 
-  if (!isOpen) return null;
+  const debounceTimer = useRef<any>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setId('');
+      setTitle('');
+      setDifficulty('Medium');
+      setTagsInput('');
+      setCompanyTagsInput('');
+      setLeetcodeUrl('');
+      setNotes('');
+      setError('');
+      setAutofillSuccess('');
+    }
+  }, [isOpen]);
+
+  const triggerAutofill = async (query: string) => {
+    const q = query.trim();
+    if (!q) return;
+
+    try {
+      setAutofilling(true);
+      setError('');
+      setAutofillSuccess('');
+
+      const data = await problemsApi.lookupMetadata(q);
+      if (data) {
+        if (data.id) setId(data.id);
+        if (data.title) setTitle(data.title);
+        if (data.difficulty) setDifficulty(data.difficulty as Difficulty);
+        if (data.leetcode_url) setLeetcodeUrl(data.leetcode_url);
+        if (data.tags && data.tags.length > 0) {
+          setTagsInput(data.tags.join(', '));
+        }
+        if (data.company_tags && data.company_tags.length > 0) {
+          setCompanyTagsInput(data.company_tags.join(', '));
+        }
+
+        const tagCount = data.tags ? data.tags.length : 0;
+        const companyCount = data.company_tags ? data.company_tags.length : 0;
+        setAutofillSuccess(
+          `Auto-filled metadata (${tagCount} algorithm labels, ${companyCount} companies)`
+        );
+      }
+    } catch {
+      // If query is custom/not found in public catalog, silent fail so user can still manually input
+    } finally {
+      setAutofilling(false);
+    }
+  };
+
+  const handleIdChange = (val: string) => {
+    setId(val);
+    clearTimeout(debounceTimer.current);
+    const trimmed = val.trim();
+    if (trimmed.length > 0 && /^\d+$/.test(trimmed)) {
+      debounceTimer.current = setTimeout(() => {
+        triggerAutofill(trimmed);
+      }, 450);
+    }
+  };
+
+  const handleUrlChange = (val: string) => {
+    setLeetcodeUrl(val);
+    clearTimeout(debounceTimer.current);
+    const trimmed = val.trim();
+    if (trimmed.includes('leetcode.com/problems/')) {
+      debounceTimer.current = setTimeout(() => {
+        triggerAutofill(trimmed);
+      }, 300);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,26 +115,30 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
         .map((t) => t.trim())
         .filter(Boolean);
 
+      const companyTags = companyTagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
       await onSubmit({
         id: id.trim(),
         title: title.trim(),
         difficulty,
         tags,
+        company_tags: companyTags,
         leetcode_url: leetcodeUrl.trim() || undefined,
         notes: notes.trim() || undefined,
       });
 
       onClose();
-      setId('');
-      setTitle('');
-      setNotes('');
-      setLeetcodeUrl('');
     } catch (err: any) {
       setError(err.message || 'Failed to add question');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
@@ -70,15 +150,26 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
+        {/* Modal Header */}
         <div className="flex items-center space-x-3 mb-5">
           <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-base font-bold text-text-main">Add New Question</h2>
-            <p className="text-xs text-text-muted">Insert custom interview problems or new LeetCode questions</p>
+            <p className="text-xs text-text-muted">
+              Enter an ID or LeetCode URL to auto-fill title, tags, and hiring companies
+            </p>
           </div>
         </div>
+
+        {/* Autofill Status Banner */}
+        {autofillSuccess && (
+          <div className="p-2.5 mb-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs flex items-center space-x-2 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-500" />
+            <span>{autofillSuccess}</span>
+          </div>
+        )}
 
         {error && (
           <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs">
@@ -86,28 +177,50 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+          {/* Row 1: ID with instant Auto-fill button */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
               <label className="block font-semibold text-text-main mb-1">
                 ID / Number *
               </label>
-              <input
-                type="text"
-                placeholder="e.g. 2046"
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                required
-                className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="e.g. 2045"
+                  value={id}
+                  onChange={(e) => handleIdChange(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+                {autofilling && (
+                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  </div>
+                )}
+              </div>
             </div>
+
             <div className="col-span-2">
-              <label className="block font-semibold text-text-main mb-1">
-                Problem Title *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-semibold text-text-main">
+                  Problem Title *
+                </label>
+                {id.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => triggerAutofill(id)}
+                    disabled={autofilling}
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1 cursor-pointer font-semibold"
+                  >
+                    <Sparkles className="w-3 h-3 mr-0.5" />
+                    <span>{autofilling ? 'Fetching...' : 'Auto-fill'}</span>
+                  </button>
+                )}
+              </div>
               <input
                 type="text"
-                placeholder="e.g. Find Kth Shortest Route"
+                placeholder="e.g. Second Minimum Time to Reach Destination"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -116,6 +229,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
             </div>
           </div>
 
+          {/* Row 2: Difficulty & URL */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-text-main mb-1">
@@ -139,31 +253,47 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                 type="url"
                 placeholder="https://leetcode.com/problems/..."
                 value={leetcodeUrl}
-                onChange={(e) => setLeetcodeUrl(e.target.value)}
+                onChange={(e) => handleUrlChange(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
+          {/* Row 3: Algorithm Tags */}
           <div>
             <label className="block font-semibold text-text-main mb-1">
-              Algorithm Tags (comma-separated)
+              Algorithm Labels (comma-separated)
             </label>
             <input
               type="text"
-              placeholder="k-Shortest Paths, Graph, Dijkstra"
+              placeholder="Graph, Breadth-First Search, Shortest Path"
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
 
+          {/* Row 4: Company Tags */}
+          <div>
+            <label className="block font-semibold text-text-main mb-1">
+              Company Tags (comma-separated)
+            </label>
+            <input
+              type="text"
+              placeholder="Google, Amazon, Meta / Facebook, Microsoft, Apple"
+              value={companyTagsInput}
+              onChange={(e) => setCompanyTagsInput(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+          </div>
+
+          {/* Row 5: Notes */}
           <div>
             <label className="block font-semibold text-text-main mb-1">
               Initial Notes or Hints
             </label>
             <textarea
-              rows={3}
+              rows={2}
               placeholder="e.g. Approach outline, recurrence relation, or complexity..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -171,6 +301,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
             />
           </div>
 
+          {/* Modal Actions */}
           <div className="flex justify-end space-x-3 pt-3 border-t border-border">
             <button
               type="button"
@@ -181,7 +312,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || autofilling}
               className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 shadow-md shadow-indigo-600/30 transition disabled:opacity-50 cursor-pointer"
             >
               <Plus className="w-4 h-4" />

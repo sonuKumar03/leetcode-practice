@@ -1,8 +1,9 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from app.db.session import get_db_connection
-from app.models.problem import ProblemCreate, ProblemOut, ProblemListResponse
+from app.models.problem import ProblemCreate, ProblemOut, ProblemListResponse, MetadataLookupOut
 from app.repositories.problem_repo import ProblemRepository
+from app.services.metadata_service import MetadataService
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
@@ -40,6 +41,14 @@ def get_problems(
             total_pages=total_pages,
         )
 
+@router.get("/lookup", response_model=MetadataLookupOut)
+def lookup_metadata(query: str = Query(..., description="Problem ID, Title slug, or LeetCode URL")):
+    """Auto-fill metadata (title, difficulty, url, algorithm tags, company tags) for a problem."""
+    result = MetadataService.lookup_metadata(query)
+    if not result:
+        raise HTTPException(status_code=404, detail="No metadata found for query")
+    return MetadataLookupOut(**result)
+
 @router.get("/{problem_id}", response_model=ProblemOut)
 def get_problem(problem_id: str):
     with get_db_connection() as conn:
@@ -58,6 +67,7 @@ def add_problem(payload: ProblemCreate):
             title=payload.title,
             difficulty=payload.difficulty,
             tags=payload.tags,
+            company_tags=payload.company_tags,
             leetcode_url=payload.leetcode_url,
             doocs_url=payload.doocs_url,
             notes=payload.notes,

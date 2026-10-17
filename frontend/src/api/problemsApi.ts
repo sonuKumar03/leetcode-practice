@@ -33,6 +33,20 @@ export const problemsApi = {
     return apiRequest<Problem>(`/api/v1/problems/${id}`);
   },
 
+  lookupMetadata: (
+    query: string
+  ): Promise<{
+    id: string;
+    title: string;
+    difficulty: any;
+    leetcode_url: string;
+    tags: string[];
+    company_tags: string[];
+    source: string;
+  }> => {
+    return apiRequest(`/api/v1/problems/lookup?query=${encodeURIComponent(query)}`);
+  },
+
   createProblem: (payload: NewProblemPayload): Promise<Problem> => {
     return apiRequest<Problem>('/api/v1/problems', {
       method: 'POST',
