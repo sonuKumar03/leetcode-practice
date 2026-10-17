@@ -30,17 +30,20 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, onStatusChange }
     todo: {
       label: 'To Do',
       icon: Circle,
-      style: 'bg-[#151D2C] text-slate-400 hover:text-slate-200 border border-[#212C3F] hover:border-slate-500',
+      style:
+        'bg-slate-100 dark:bg-[#151D2C] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-[#212C3F] hover:border-slate-400 dark:hover:border-slate-500',
     },
     in_progress: {
       label: 'In Progress',
       icon: Clock,
-      style: 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25',
+      style:
+        'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/25',
     },
     solved: {
       label: 'Solved',
       icon: CheckCircle2,
-      style: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25',
+      style:
+        'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/25',
     },
   };
 
