@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Code2,
   Star,
@@ -30,8 +30,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [categoryType, setCategoryType] = useState<'topics' | 'companies'>('topics');
   const [tagSearch, setTagSearch] = useState('');
 
-  const topicTags = tags.filter((t) => t.type !== 'company');
-  const companyTags = tags.filter((t) => t.type === 'company');
+  const topicTags = useMemo(() => tags.filter((t) => t.type !== 'company'), [tags]);
+  const companyTags = useMemo(() => tags.filter((t) => t.type === 'company'), [tags]);
 
   // Auto-switch to company tab if a company tag is selected externally
   useEffect(() => {
@@ -41,12 +41,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         setCategoryType('companies');
       }
     }
-  }, [selectedTag, companyTags.length]);
+  }, [selectedTag, companyTags]);
 
   const currentList = categoryType === 'topics' ? topicTags : companyTags;
-  const filteredTags = currentList.filter((t) =>
-    t.name.toLowerCase().includes(tagSearch.toLowerCase())
-  );
+  const filteredTags = useMemo(() => {
+    const query = tagSearch.trim().toLowerCase();
+    if (!query) return currentList;
+    return currentList.filter((t) => t.name.toLowerCase().includes(query));
+  }, [currentList, tagSearch]);
 
   return (
     <aside className="w-64 bg-sidebar border-r border-border flex flex-col h-screen select-none flex-shrink-0 text-text-muted transition-colors">

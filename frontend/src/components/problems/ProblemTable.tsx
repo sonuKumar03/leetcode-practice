@@ -9,6 +9,7 @@ interface ProblemTableProps {
   total: number;
   page: number;
   totalPages: number;
+  loading?: boolean;
   onPageChange: (newPage: number) => void;
   onStatusChange: (id: string, newStatus: Status) => void;
   onToggleStar: (id: string, current: boolean) => void;
@@ -16,11 +17,44 @@ interface ProblemTableProps {
   onSelectTag: (tag: string) => void;
 }
 
+const SkeletonRow: React.FC = () => (
+  <tr className="animate-pulse border-b border-border/50">
+    <td className="py-3 px-4 text-center">
+      <div className="w-4 h-4 rounded bg-surface-active mx-auto" />
+    </td>
+    <td className="py-3 px-4">
+      <div className="w-8 h-4 rounded bg-surface-active font-mono" />
+    </td>
+    <td className="py-3 px-4">
+      <div className="w-56 h-4 rounded bg-surface-active" />
+    </td>
+    <td className="py-3 px-4">
+      <div className="w-16 h-5 rounded-md bg-surface-active" />
+    </td>
+    <td className="py-3 px-4">
+      <div className="w-24 h-6 rounded-lg bg-surface-active" />
+    </td>
+    <td className="py-3 px-4">
+      <div className="flex gap-1.5">
+        <div className="w-16 h-5 rounded-md bg-surface-active" />
+        <div className="w-20 h-5 rounded-md bg-surface-active" />
+      </div>
+    </td>
+    <td className="py-3 px-4 text-center">
+      <div className="w-6 h-6 rounded bg-surface-active mx-auto" />
+    </td>
+    <td className="py-3 px-4 text-right">
+      <div className="w-10 h-5 rounded bg-surface-active ml-auto" />
+    </td>
+  </tr>
+);
+
 export const ProblemTable: React.FC<ProblemTableProps> = ({
   problems,
   total,
   page,
   totalPages,
+  loading = false,
   onPageChange,
   onStatusChange,
   onToggleStar,
@@ -28,7 +62,14 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
   onSelectTag,
 }) => {
   return (
-    <div className="flex-1 flex flex-col h-full bg-canvas transition-colors">
+    <div className="flex-1 flex flex-col h-full bg-canvas transition-colors relative">
+      {/* Sleek top indeterminate loading beam */}
+      <div className="h-0.5 w-full bg-transparent overflow-hidden sticky top-0 z-20">
+        {loading && (
+          <div className="w-full h-full bg-gradient-to-r from-brand/20 via-brand to-brand/20 animate-indeterminate" />
+        )}
+      </div>
+
       <div className="flex-1 overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
@@ -43,8 +84,14 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
               <th className="py-3 px-4 w-28 text-right">Links</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
-            {problems.length === 0 ? (
+          <tbody
+            className={`divide-y divide-border transition-opacity duration-150 ${
+              loading && problems.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {loading && problems.length === 0 ? (
+              Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} />)
+            ) : problems.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-20 text-center text-text-subtle">
                   <div className="max-w-xs mx-auto space-y-1.5">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopHeader } from './components/layout/TopHeader';
 import { ProblemTable } from './components/problems/ProblemTable';
@@ -10,6 +10,8 @@ import { tagsApi } from './api/tagsApi';
 import type { Problem, Tag, Stats, Status, NewProblemPayload } from './types';
 
 export function App() {
+  const mainRef = useRef<HTMLElement>(null);
+
   // Main data state
   const [problems, setProblems] = useState<Problem[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -40,17 +42,23 @@ export function App() {
   const effectiveStatus = activeView === 'solved' ? 'solved' : activeView === 'in_progress' ? 'in_progress' : status;
   const effectiveStarred = activeView === 'starred' ? true : isStarred;
 
-  // Load Metadata (Tags & Stats)
-  const loadMetadata = useCallback(async () => {
+  // Load canonical tags (cached, only on mount or updates)
+  const loadTags = useCallback(async () => {
     try {
-      const [fetchedTags, fetchedStats] = await Promise.all([
-        tagsApi.getTags(),
-        tagsApi.getStats(selectedTag || undefined),
-      ]);
+      const fetchedTags = await tagsApi.getTags();
       setTags(fetchedTags);
+    } catch (err) {
+      console.error('Failed to load tags:', err);
+    }
+  }, []);
+
+  // Load stats (updates when selectedTag changes)
+  const loadStats = useCallback(async () => {
+    try {
+      const fetchedStats = await tagsApi.getStats(selectedTag || undefined);
       setStats(fetchedStats);
     } catch (err) {
-      console.error('Failed to load metadata:', err);
+      console.error('Failed to load stats:', err);
     }
   }, [selectedTag]);
 
@@ -80,24 +88,30 @@ export function App() {
   }, [selectedTag, search, difficulty, effectiveStatus, effectiveStarred, paidOnly, sortBy, page]);
 
   useEffect(() => {
-    loadMetadata();
-  }, [loadMetadata]);
+    loadTags();
+  }, [loadTags]);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   useEffect(() => {
     loadProblems();
   }, [loadProblems]);
 
-  // Navigation Handlers
+  // Navigation Handlers with smooth scroll reset
   const handleSelectView = (view: 'all' | 'starred' | 'in_progress' | 'solved') => {
     setActiveView(view);
     setSelectedTag('');
     setPage(1);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleSelectTag = (tagSlug: string) => {
     setSelectedTag(tagSlug);
     setActiveView('all');
     setPage(1);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleStatusChange = async (id: string, newStatus: Status) => {
@@ -106,8 +120,7 @@ export function App() {
     );
     try {
       await problemsApi.updateTracking(id, { status: newStatus });
-      const updatedStats = await tagsApi.getStats(selectedTag || undefined);
-      setStats(updatedStats);
+      loadStats();
     } catch (err) {
       console.error('Failed to update status:', err);
     }
@@ -120,8 +133,7 @@ export function App() {
     );
     try {
       await problemsApi.updateTracking(id, { is_starred: next });
-      const updatedStats = await tagsApi.getStats(selectedTag || undefined);
-      setStats(updatedStats);
+      loadStats();
     } catch (err) {
       console.error('Failed to update star:', err);
     }
@@ -140,7 +152,7 @@ export function App() {
 
   const handleAddQuestion = async (payload: NewProblemPayload) => {
     await problemsApi.createProblem(payload);
-    await Promise.all([loadMetadata(), loadProblems()]);
+    await Promise.all([loadTags(), loadStats(), loadProblems()]);
   };
 
   const handleImportTracking = async (
@@ -153,7 +165,7 @@ export function App() {
         notes: item.notes,
       });
     }
-    await Promise.all([loadMetadata(), loadProblems()]);
+    await Promise.all([loadTags(), loadStats(), loadProblems()]);
   };
 
   const handlePaidToggle = () => {
@@ -161,6 +173,7 @@ export function App() {
     else if (paidOnly === false) setPaidOnly(true);
     else setPaidOnly(undefined);
     setPage(1);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   return (
@@ -185,21 +198,25 @@ export function App() {
           onSearchChange={(val) => {
             setSearch(val);
             setPage(1);
+            mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
           }}
           difficulty={difficulty}
           onDifficultyChange={(val) => {
             setDifficulty(val);
             setPage(1);
+            mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
           }}
           status={status}
           onStatusChange={(val) => {
             setStatus(val);
             setPage(1);
+            mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
           }}
           isStarred={isStarred}
           onToggleStarred={() => {
             setIsStarred(!isStarred);
             setPage(1);
+            mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
           }}
           paidOnly={paidOnly}
           onPaidToggle={handlePaidToggle}
@@ -209,26 +226,23 @@ export function App() {
           onOpenBackupModal={() => setIsBackupModalOpen(true)}
         />
 
-        {/* Content Table */}
-        <main className="flex-1 overflow-y-auto flex flex-col bg-canvas">
-          {loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand border-t-transparent" />
-              <p className="text-xs text-text-subtle font-medium">Loading problems...</p>
-            </div>
-          ) : (
-            <ProblemTable
-              problems={problems}
-              total={total}
-              page={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              onStatusChange={handleStatusChange}
-              onToggleStar={handleToggleStar}
-              onOpenNotes={(prob) => setActiveNotesProblem(prob)}
-              onSelectTag={handleSelectTag}
-            />
-          )}
+        {/* Content Table: Always mounted so layout NEVER jumps */}
+        <main ref={mainRef} className="flex-1 overflow-y-auto flex flex-col bg-canvas">
+          <ProblemTable
+            problems={problems}
+            total={total}
+            page={page}
+            totalPages={totalPages}
+            loading={loading}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+            }}
+            onStatusChange={handleStatusChange}
+            onToggleStar={handleToggleStar}
+            onOpenNotes={(prob) => setActiveNotesProblem(prob)}
+            onSelectTag={handleSelectTag}
+          />
         </main>
       </div>
 
