@@ -48,7 +48,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
         {/* Header */}
         <div className="flex items-start space-x-3 mb-4">
-          <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 mt-1">
+          <div className="p-2.5 rounded-xl bg-brand-subtle text-brand border border-brand/30 mt-1">
             <FileText className="w-5 h-5" />
           </div>
           <div>

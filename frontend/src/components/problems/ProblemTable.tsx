@@ -217,7 +217,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                             target="_blank"
                             rel="noreferrer"
                             title="Open on LeetCode"
-                            className="p-1.5 rounded-lg text-text-subtle hover:text-amber-500 hover:bg-surface-hover transition"
+                            className="p-1.5 rounded-lg text-text-subtle hover:text-brand hover:bg-surface-hover transition"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </a>

@@ -42,9 +42,9 @@
   --text-secondary: #57606A;
   --text-muted: #8C959F;
 
-  --color-brand: #D97706;        /* Warm Amber */
-  --color-brand-hover: #B45309;
-  --color-brand-subtle: #FEF3C7;
+  --color-brand: #0891B2;        /* Electric Deep Cyan */
+  --color-brand-hover: #0E7490;
+  --color-brand-subtle: #ECFEFF;
 
   /* Sleek light scrollbar */
   --scrollbar-thumb: rgba(100, 116, 139, 0.3);
@@ -68,9 +68,9 @@
   --text-secondary: #8B949E;    /* Muted Slate Secondary */
   --text-muted: #6E7681;        /* Subtle Metadata */
 
-  --color-brand: #F59E0B;        /* Electric Warm Amber */
-  --color-brand-hover: #D97706;
-  --color-brand-subtle: rgba(245, 158, 11, 0.14);
+  --color-brand: #06B6D4;        /* Electric Neon Cyan */
+  --color-brand-hover: #0891B2;
+  --color-brand-subtle: rgba(6, 182, 212, 0.15);
 
   /* Sleek dark scrollbar */
   --scrollbar-thumb: rgba(139, 148, 158, 0.25);
