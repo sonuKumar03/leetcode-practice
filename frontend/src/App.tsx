@@ -164,7 +164,7 @@ export function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#090C15] text-slate-800 dark:text-slate-100 font-sans transition-colors">
+    <div className="flex h-screen w-screen overflow-hidden bg-canvas text-text-main font-sans transition-colors">
       {/* Sidebar: Mutually Exclusive Single Active Item */}
       <Sidebar
         tags={tags}
@@ -176,7 +176,7 @@ export function App() {
       />
 
       {/* Main Workspace */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-[#090C15]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-canvas">
         {/* Sticky Toolbar & Progress Header */}
         <TopHeader
           stats={stats}
@@ -210,11 +210,11 @@ export function App() {
         />
 
         {/* Content Table */}
-        <main className="flex-1 overflow-y-auto flex flex-col bg-slate-50 dark:bg-[#090C15]">
+        <main className="flex-1 overflow-y-auto flex flex-col bg-canvas">
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent" />
-              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Loading problems...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand border-t-transparent" />
+              <p className="text-xs text-text-subtle font-medium">Loading problems...</p>
             </div>
           ) : (
             <ProblemTable

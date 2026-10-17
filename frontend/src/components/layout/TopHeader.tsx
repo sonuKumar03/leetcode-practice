@@ -73,22 +73,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const solvedPct = stats ? stats.completion_percentage : 0;
 
   return (
-    <header className="bg-white dark:bg-[#0C101B] border-b border-slate-200 dark:border-[#1B2438] px-6 py-3.5 space-y-3 sticky top-0 z-20 select-none transition-colors">
+    <header className="bg-header border-b border-border px-6 py-3.5 space-y-3 sticky top-0 z-20 select-none transition-colors">
       {/* Top Level: Focused Title & Global Action Buttons */}
       <div className="flex items-center justify-between gap-4">
         {/* Title & Active Category Indicator */}
         <div className="flex items-center space-x-3">
-          <h1 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-sm font-bold text-text-main tracking-tight">
             {activeTag ? (
               <span className="flex items-center space-x-2">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Category:</span>
-                <span className="text-slate-900 dark:text-white font-bold">{stats?.tag_name || activeTag}</span>
+                <span className="text-text-muted font-medium">Category:</span>
+                <span className="text-text-main font-bold">{stats?.tag_name || activeTag}</span>
               </span>
             ) : (
               <span>All Questions</span>
             )}
           </h1>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="text-xs text-text-subtle">
             ({stats?.total_problems || 0} total)
           </span>
         </div>
@@ -96,11 +96,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Essential Actions: Progress Bar + Add Question + Backup + Theme Toggle */}
         <div className="flex items-center space-x-2.5">
           {stats && (
-            <div className="hidden lg:flex items-center space-x-3 bg-slate-50 dark:bg-[#111728] border border-slate-200 dark:border-[#212C42] rounded-xl px-3 py-1.5 text-xs">
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Solved:</span>
+            <div className="hidden lg:flex items-center space-x-3 bg-surface border border-border rounded-xl px-3 py-1.5 text-xs">
+              <span className="text-text-muted font-medium">Solved:</span>
               <span className="text-emerald-600 dark:text-emerald-400 font-bold">{stats.solved_problems}</span>
-              <span className="text-slate-300 dark:text-slate-600">/</span>
-              <span className="text-slate-700 dark:text-slate-300">{stats.total_problems}</span>
+              <span className="text-text-subtle">/</span>
+              <span className="text-text-main font-semibold">{stats.total_problems}</span>
               <div className="w-20">
                 <ProgressBar value={solvedPct} color="#10B981" />
               </div>
@@ -182,7 +182,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 className={`w-3.5 h-3.5 ${
                   isStarred
                     ? 'fill-amber-300 text-amber-300'
-                    : 'text-slate-400'
+                    : 'text-text-subtle'
                 }`}
               />
             }
@@ -202,18 +202,18 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </Button>
 
           {/* Sort Menu */}
-          <div className="flex items-center bg-slate-50 dark:bg-[#111728] border border-slate-200 dark:border-[#212C42] rounded-xl px-2 py-1 text-xs text-slate-700 dark:text-slate-300">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mr-1.5" />
+          <div className="flex items-center bg-surface border border-border rounded-xl px-2 py-1 text-xs text-text-main">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-text-subtle mr-1.5" />
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
-              className="bg-transparent text-slate-700 dark:text-slate-300 text-xs focus:outline-none cursor-pointer"
+              className="bg-transparent text-text-main text-xs focus:outline-none cursor-pointer"
             >
-              <option value="id_asc" className="bg-white dark:bg-[#111728] text-slate-900 dark:text-slate-100">ID (1 → N)</option>
-              <option value="id_desc" className="bg-white dark:bg-[#111728] text-slate-900 dark:text-slate-100">ID (N → 1)</option>
-              <option value="difficulty_asc" className="bg-white dark:bg-[#111728] text-slate-900 dark:text-slate-100">Difficulty (Easy → Hard)</option>
-              <option value="difficulty_desc" className="bg-white dark:bg-[#111728] text-slate-900 dark:text-slate-100">Difficulty (Hard → Easy)</option>
-              <option value="title_asc" className="bg-white dark:bg-[#111728] text-slate-900 dark:text-slate-100">Title (A → Z)</option>
+              <option value="id_asc" className="bg-surface text-text-main">ID (1 → N)</option>
+              <option value="id_desc" className="bg-surface text-text-main">ID (N → 1)</option>
+              <option value="difficulty_asc" className="bg-surface text-text-main">Difficulty (Easy → Hard)</option>
+              <option value="difficulty_desc" className="bg-surface text-text-main">Difficulty (Hard → Easy)</option>
+              <option value="title_asc" className="bg-surface text-text-main">Title (A → Z)</option>
             </select>
           </div>
         </div>

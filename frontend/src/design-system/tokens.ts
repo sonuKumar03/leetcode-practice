@@ -1,59 +1,38 @@
 /**
- * LeetCode Practice Tracker - UI Design Tokens
- * Clean, consistent dark-first design system
+ * LeetCode Practice Tracker - Centralized UI Design Tokens
+ * System color variables and typography for simple theme & font customization
  */
 
 export const tokens = {
   colors: {
-    // Surfaces
-    canvas: '#090C15',         // Root background
-    sidebar: '#0D111D',        // Navigation sidebar
-    surface: '#111728',        // Cards, table headers, containers
-    surfaceElevated: '#171F34',// Modals, dropdowns, tooltips
-    surfaceHover: '#1B243B',   // Row hover, button hover
+    // Dynamic CSS Variable Tokens (bound to :root and .dark in index.css)
+    canvas: 'var(--bg-canvas)',
+    sidebar: 'var(--bg-sidebar)',
+    header: 'var(--bg-header)',
+    surface: 'var(--bg-surface)',
+    surfaceHover: 'var(--bg-surface-hover)',
+    surfaceActive: 'var(--bg-surface-active)',
+    elevated: 'var(--bg-elevated)',
 
-    // Borders
-    borderSubtle: '#1C253B',   // Dividers, card borders
-    borderMuted: '#25324D',    // Input borders, active borders
-    borderHighlight: '#6366F1',// Focus rings, active selection
+    border: 'var(--border-subtle)',
+    borderMuted: 'var(--border-muted)',
 
-    // Text & Content
-    textPrimary: '#F8FAFC',    // Headlines, titles, numbers
-    textSecondary: '#94A3B8',  // Subtitles, metadata, table headers
-    textMuted: '#64748B',      // Placeholders, disabled text
+    textMain: 'var(--text-primary)',
+    textMuted: 'var(--text-secondary)',
+    textSubtle: 'var(--text-muted)',
 
-    // Accents
-    accent: '#6366F1',         // Primary indigo
-    accentHover: '#4F46E5',
-    accentSubtle: 'rgba(99, 102, 241, 0.15)',
+    brand: 'var(--color-brand)',
+    brandHover: 'var(--color-brand-hover)',
+    brandSubtle: 'var(--color-brand-subtle)',
 
     // Difficulties
-    easy: '#10B981',           // Emerald
-    easyBg: 'rgba(16, 185, 129, 0.12)',
-    easyBorder: 'rgba(16, 185, 129, 0.25)',
-
-    medium: '#F59E0B',         // Amber
-    mediumBg: 'rgba(245, 158, 11, 0.12)',
-    mediumBorder: 'rgba(245, 158, 11, 0.25)',
-
-    hard: '#EF4444',           // Red
-    hardBg: 'rgba(239, 68, 68, 0.12)',
-    hardBorder: 'rgba(239, 68, 68, 0.25)',
-
-    // Statuses
-    todo: '#64748B',
-    todoBg: 'rgba(100, 116, 139, 0.15)',
-    todoBorder: 'rgba(100, 116, 139, 0.3)',
-
-    inProgress: '#38BDF8',     // Sky
-    inProgressBg: 'rgba(56, 189, 248, 0.15)',
-    inProgressBorder: 'rgba(56, 189, 248, 0.3)',
-
-    solved: '#10B981',
-    solvedBg: 'rgba(16, 185, 129, 0.15)',
-    solvedBorder: 'rgba(16, 185, 129, 0.3)',
-
-    starred: '#F59E0B',
+    easy: '#10B981',
+    medium: '#F59E0B',
+    hard: '#EF4444',
+  },
+  typography: {
+    fontSans: 'var(--font-sans)',
+    fontMono: 'var(--font-mono)',
   },
   radius: {
     sm: '0.375rem',  // 6px
@@ -62,8 +41,4 @@ export const tokens = {
     xl: '1rem',      // 16px
     full: '9999px',
   },
-  typography: {
-    fontSans: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontMono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-  }
 } as const;

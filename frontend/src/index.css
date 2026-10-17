@@ -2,6 +2,29 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-canvas: var(--bg-canvas);
+  --color-sidebar: var(--bg-sidebar);
+  --color-header: var(--bg-header);
+  --color-surface: var(--bg-surface);
+  --color-surface-hover: var(--bg-surface-hover);
+  --color-surface-active: var(--bg-surface-active);
+  --color-elevated: var(--bg-elevated);
+  --color-border: var(--border-subtle);
+  --color-border-muted: var(--border-muted);
+
+  --color-text-main: var(--text-primary);
+  --color-text-muted: var(--text-secondary);
+  --color-text-subtle: var(--text-muted);
+
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-subtle: var(--color-brand-subtle);
+}
+
 :root {
   color-scheme: light;
   --bg-canvas: #F8FAFC;
@@ -9,12 +32,19 @@
   --bg-header: #FFFFFF;
   --bg-surface: #FFFFFF;
   --bg-surface-hover: #F1F5F9;
-  --bg-card: #FFFFFF;
+  --bg-surface-active: #E2E8F0;
+  --bg-elevated: #FFFFFF;
+
   --border-subtle: #E2E8F0;
   --border-muted: #CBD5E1;
+
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #94A3B8;
+
+  --color-brand: #4F46E5;
+  --color-brand-hover: #4338CA;
+  --color-brand-subtle: #EEF2FF;
 
   /* Sleek light scrollbar */
   --scrollbar-thumb: rgba(148, 163, 184, 0.4);
@@ -27,13 +57,20 @@
   --bg-sidebar: #0A0D18;
   --bg-header: #0C101B;
   --bg-surface: #0D111D;
-  --bg-surface-hover: #121828;
-  --bg-card: #111728;
+  --bg-surface-hover: #141B2B;
+  --bg-surface-active: #1C253B;
+  --bg-elevated: #111728;
+
   --border-subtle: #1B2338;
   --border-muted: #212C42;
+
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
+
+  --color-brand: #6366F1;
+  --color-brand-hover: #4F46E5;
+  --color-brand-subtle: rgba(99, 102, 241, 0.15);
 
   /* Sleek dark scrollbar */
   --scrollbar-thumb: rgba(148, 163, 184, 0.2);
@@ -47,14 +84,14 @@
     min-height: 100vh;
     background-color: var(--bg-canvas);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   ::selection {
-    background-color: #6366F1;
+    background-color: var(--color-brand);
     color: #FFFFFF;
   }
 
