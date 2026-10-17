@@ -3,11 +3,11 @@ import {
   Code2,
   Sparkles,
   Star,
-  Clock,
-  CheckCircle2,
   Layers,
   Search,
   Flame,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 import type { Tag, Stats } from '../../types';
 import { Input } from '../../design-system/components/Input';
@@ -16,10 +16,8 @@ interface SidebarProps {
   tags: Tag[];
   selectedTag: string;
   onSelectTag: (tagSlug: string) => void;
-  statusFilter: string;
-  onSelectStatus: (status: string) => void;
-  isStarredFilter: boolean;
-  onToggleStarred: () => void;
+  activeView: 'all' | 'starred' | 'in_progress' | 'solved';
+  onSelectView: (view: 'all' | 'starred' | 'in_progress' | 'solved') => void;
   stats: Stats | null;
 }
 
@@ -27,10 +25,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tags,
   selectedTag,
   onSelectTag,
-  statusFilter,
-  onSelectStatus,
-  isStarredFilter,
-  onToggleStarred,
+  activeView,
+  onSelectView,
   stats,
 }) => {
   const [tagSearch, setTagSearch] = useState('');
@@ -62,72 +58,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-600/30">
           <Code2 className="w-4 h-4" />
         </div>
-        <div>
-          <span className="font-bold text-sm text-white tracking-tight">LeetTracker</span>
-        </div>
+        <span className="font-bold text-sm text-white tracking-tight">LeetTracker</span>
       </div>
 
       {/* Main Nav Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-5">
-        {/* Quick Views */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-6">
+        {/* Practice Lists (Single Mutually-Exclusive Active State) */}
         <div className="space-y-1">
           <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-            Views
+            My Workspace
           </div>
 
           <button
-            onClick={() => {
-              onSelectTag('');
-              onSelectStatus('All');
-              if (isStarredFilter) onToggleStarred();
-            }}
+            onClick={() => onSelectView('all')}
             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-              selectedTag === '' && statusFilter === 'All' && !isStarredFilter
+              activeView === 'all' && selectedTag === ''
                 ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
                 : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
             <div className="flex items-center space-x-2">
               <Layers className="w-4 h-4 text-indigo-400" />
-              <span>All Problems</span>
+              <span>All Questions</span>
             </div>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#131A2A] text-slate-400">
               {stats?.total_problems || 4033}
             </span>
           </button>
 
-          {/* Special Focus: k-Shortest Paths */}
           <button
-            onClick={() => {
-              onSelectTag('k-shortest-paths');
-              onSelectStatus('All');
-            }}
+            onClick={() => onSelectView('starred')}
             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-              selectedTag === 'k-shortest-paths'
-                ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-sm'
-                : 'text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="font-semibold">k-Shortest Paths</span>
-            </div>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
-              FOCUS
-            </span>
-          </button>
-
-          {/* Starred */}
-          <button
-            onClick={onToggleStarred}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-              isStarredFilter
-                ? 'bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30'
+              activeView === 'starred'
+                ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
                 : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
             <div className="flex items-center space-x-2">
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400/30" />
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400/20" />
               <span>Starred</span>
             </div>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#131A2A] text-slate-400">
@@ -135,12 +103,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </button>
 
-          {/* In Progress */}
           <button
-            onClick={() => onSelectStatus(statusFilter === 'in_progress' ? 'All' : 'in_progress')}
+            onClick={() => onSelectView('in_progress')}
             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-              statusFilter === 'in_progress'
-                ? 'bg-sky-500/20 text-sky-300 font-semibold border border-sky-500/30'
+              activeView === 'in_progress'
+                ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
                 : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
@@ -153,12 +120,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </button>
 
-          {/* Solved */}
           <button
-            onClick={() => onSelectStatus(statusFilter === 'solved' ? 'All' : 'solved')}
+            onClick={() => onSelectView('solved')}
             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-              statusFilter === 'solved'
-                ? 'bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30'
+              activeView === 'solved'
+                ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
                 : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
             }`}
           >
@@ -172,36 +138,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Curated Algorithm Categories */}
+        {/* Categories Section */}
         <div className="space-y-1">
           <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center space-x-1">
             <Flame className="w-3 h-3 text-orange-400" />
             <span>Key Algorithms</span>
           </div>
-          {spotlightTags
-            .filter((t) => !t.isFocus)
-            .map((item) => {
-              const active = selectedTag === item.slug;
-              const matchingTag = tags.find((t) => t.slug === item.slug);
-              return (
-                <button
-                  key={item.slug}
-                  onClick={() => onSelectTag(active ? '' : item.slug)}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
-                    active
-                      ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
-                      : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
-                  }`}
-                >
+
+          {spotlightTags.map((item) => {
+            const active = selectedTag === item.slug && activeView === 'all';
+            const matchingTag = tags.find((t) => t.slug === item.slug);
+            return (
+              <button
+                key={item.slug}
+                onClick={() => onSelectTag(active ? '' : item.slug)}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
+                  active
+                    ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
+                    : 'text-slate-400 hover:text-white hover:bg-[#141B2B]'
+                }`}
+              >
+                <div className="flex items-center space-x-2 truncate">
+                  {item.isFocus && <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
                   <span className="truncate">{item.name}</span>
-                  {matchingTag && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#131A2A] text-slate-400">
-                      {matchingTag.problem_count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                </div>
+                {matchingTag && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#131A2A] text-slate-400 ml-1.5 flex-shrink-0">
+                    {matchingTag.problem_count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Search All Tags */}
@@ -219,7 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="max-h-56 overflow-y-auto space-y-0.5 pr-1">
             {filteredTags.map((t) => {
-              const active = selectedTag === t.slug;
+              const active = selectedTag === t.slug && activeView === 'all';
               return (
                 <button
                   key={t.id}

@@ -18,8 +18,11 @@ export function App() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Filters state
+  // Mutually exclusive view or category
+  const [activeView, setActiveView] = useState<'all' | 'starred' | 'in_progress' | 'solved'>('all');
   const [selectedTag, setSelectedTag] = useState<string>('');
+
+  // Top header filters
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState('All');
   const [status, setStatus] = useState('All');
@@ -32,6 +35,10 @@ export function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [activeNotesProblem, setActiveNotesProblem] = useState<Problem | null>(null);
+
+  // Compute effective query filters from activeView and local toggles
+  const effectiveStatus = activeView === 'solved' ? 'solved' : activeView === 'in_progress' ? 'in_progress' : status;
+  const effectiveStarred = activeView === 'starred' ? true : isStarred;
 
   // Load Metadata (Tags & Stats)
   const loadMetadata = useCallback(async () => {
@@ -55,8 +62,8 @@ export function App() {
         tag: selectedTag || undefined,
         search: search.trim() || undefined,
         difficulty,
-        status,
-        is_starred: isStarred || undefined,
+        status: effectiveStatus,
+        is_starred: effectiveStarred || undefined,
         paid_only: paidOnly,
         sort_by: sortBy,
         page,
@@ -70,7 +77,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedTag, search, difficulty, status, isStarred, paidOnly, sortBy, page]);
+  }, [selectedTag, search, difficulty, effectiveStatus, effectiveStarred, paidOnly, sortBy, page]);
 
   useEffect(() => {
     loadMetadata();
@@ -80,9 +87,16 @@ export function App() {
     loadProblems();
   }, [loadProblems]);
 
-  // Handlers
+  // Navigation Handlers
+  const handleSelectView = (view: 'all' | 'starred' | 'in_progress' | 'solved') => {
+    setActiveView(view);
+    setSelectedTag('');
+    setPage(1);
+  };
+
   const handleSelectTag = (tagSlug: string) => {
     setSelectedTag(tagSlug);
+    setActiveView('all');
     setPage(1);
   };
 
@@ -151,21 +165,13 @@ export function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#090C15] text-slate-100 font-sans">
-      {/* Sidebar: Navigation, Spotlight, Views, Categories */}
+      {/* Sidebar: Mutually Exclusive Single Active Item */}
       <Sidebar
         tags={tags}
         selectedTag={selectedTag}
         onSelectTag={handleSelectTag}
-        statusFilter={status}
-        onSelectStatus={(s) => {
-          setStatus(s);
-          setPage(1);
-        }}
-        isStarredFilter={isStarred}
-        onToggleStarred={() => {
-          setIsStarred(!isStarred);
-          setPage(1);
-        }}
+        activeView={activeView}
+        onSelectView={handleSelectView}
         stats={stats}
       />
 
