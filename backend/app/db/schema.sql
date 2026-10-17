@@ -39,10 +39,26 @@ CREATE TABLE IF NOT EXISTS user_tracking (
 );
 
 -- Indexes for lightning fast search and filtering
+-- 1. Problems table indexes
 CREATE INDEX IF NOT EXISTS idx_problems_difficulty ON problems(difficulty);
 CREATE INDEX IF NOT EXISTS idx_problems_title ON problems(title);
+CREATE INDEX IF NOT EXISTS idx_problems_title_lower ON problems(LOWER(title));
+CREATE INDEX IF NOT EXISTS idx_problems_slug ON problems(slug);
+CREATE INDEX IF NOT EXISTS idx_problems_paid_only ON problems(paid_only);
+CREATE INDEX IF NOT EXISTS idx_problems_diff_paid ON problems(difficulty, paid_only);
+CREATE INDEX IF NOT EXISTS idx_problems_id_numeric ON problems(CAST(id AS INTEGER), id);
+
+-- 2. Tags table indexes
 CREATE INDEX IF NOT EXISTS idx_tags_slug ON tags(slug);
 CREATE INDEX IF NOT EXISTS idx_tags_type ON tags(type);
+CREATE INDEX IF NOT EXISTS idx_tags_name_lower ON tags(LOWER(name));
+
+-- 3. Problem-Tags association covering indexes
 CREATE INDEX IF NOT EXISTS idx_problem_tags_tag ON problem_tags(tag_id);
+CREATE INDEX IF NOT EXISTS idx_problem_tags_tag_problem ON problem_tags(tag_id, problem_id);
+
+-- 4. User Tracking indexes
 CREATE INDEX IF NOT EXISTS idx_user_tracking_status ON user_tracking(status);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_starred ON user_tracking(is_starred);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_status_starred ON user_tracking(status, is_starred);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_cover ON user_tracking(problem_id, status, is_starred);
