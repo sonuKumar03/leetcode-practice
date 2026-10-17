@@ -189,7 +189,7 @@ class ProblemRepository:
                 FROM problem_tags pt
                 JOIN tags t ON pt.tag_id = t.id
                 WHERE pt.problem_id IN ({placeholders})
-                ORDER BY t.name ASC
+                ORDER BY CASE WHEN t.type = 'topic' THEN 0 ELSE 1 END, t.name ASC
             """
             for trow in conn.execute(tag_query, problem_ids).fetchall():
                 tag_map[trow["problem_id"]].append(trow["name"])

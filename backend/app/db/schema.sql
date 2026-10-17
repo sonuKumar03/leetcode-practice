@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS problems (
 CREATE TABLE IF NOT EXISTS tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
-    slug TEXT UNIQUE NOT NULL
+    slug TEXT UNIQUE NOT NULL,
+    type TEXT CHECK(type IN ('topic', 'company')) DEFAULT 'topic'
 );
 
 CREATE TABLE IF NOT EXISTS problem_tags (
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS user_tracking (
 CREATE INDEX IF NOT EXISTS idx_problems_difficulty ON problems(difficulty);
 CREATE INDEX IF NOT EXISTS idx_problems_title ON problems(title);
 CREATE INDEX IF NOT EXISTS idx_tags_slug ON tags(slug);
+CREATE INDEX IF NOT EXISTS idx_tags_type ON tags(type);
 CREATE INDEX IF NOT EXISTS idx_problem_tags_tag ON problem_tags(tag_id);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_status ON user_tracking(status);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_starred ON user_tracking(is_starred);

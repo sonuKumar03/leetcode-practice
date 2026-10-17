@@ -21,6 +21,7 @@ export interface Tag {
   id: number;
   name: string;
   slug: string;
+  type?: 'topic' | 'company';
   problem_count: number;
 }
 
