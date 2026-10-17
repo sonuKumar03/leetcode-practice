@@ -2,6 +2,7 @@ import sqlite3
 import re
 from typing import List, Optional, Dict, Any, Tuple
 from app.repositories.tag_repo import TagRepository, slugify
+from app.adapters.base import RawProblemItem
 
 class ProblemRepository:
     @staticmethod
@@ -211,3 +212,94 @@ class ProblemRepository:
             problems.append(prob)
 
         return problems, total
+
+    @staticmethod
+    def batch_upsert_enriched_problems(items: List[RawProblemItem], conn: Optional[sqlite3.Connection] = None) -> Dict[str, int]:
+        from app.repositories.tag_repo import slugify
+        from app.db.session import get_db_connection
+
+        if conn is None:
+            with get_db_connection() as c:
+                return ProblemRepository.batch_upsert_enriched_problems(items, conn=c)
+
+        cursor = conn.cursor()
+        upserted_count = 0
+        tags_linked = 0
+
+        for item in items:
+            # 1. Check if problem exists by slug or id
+            cursor.execute("SELECT id, frequency FROM problems WHERE slug = ?", (item.slug,))
+            row = cursor.fetchone()
+            prob_id = item.leetcode_id
+
+            if row:
+                prob_id = row["id"] if hasattr(row, "keys") else row[0]
+                freq = row["frequency"] if hasattr(row, "keys") else row[1]
+                new_freq = (freq or 0) + item.frequency_delta
+                cursor.execute("""
+                    UPDATE problems
+                    SET title = COALESCE(?, title),
+                        difficulty = COALESCE(?, difficulty),
+                        frequency = ?
+                    WHERE slug = ?
+                """, (item.title, item.difficulty, new_freq, item.slug))
+            else:
+                if not prob_id:
+                    cursor.execute("SELECT MAX(CAST(id AS INTEGER)) as max_id FROM problems")
+                    max_row = cursor.fetchone()
+                    max_id = (max_row["max_id"] if hasattr(max_row, "keys") else max_row[0]) if max_row else None
+                    next_id = (max_id or 10000) + 1
+                    prob_id = str(next_id)
+
+                lc_url = f"https://leetcode.com/problems/{item.slug}/"
+                cursor.execute("""
+                    INSERT INTO problems (id, title, slug, difficulty, paid_only, leetcode_url, frequency)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    prob_id,
+                    item.title or item.slug.replace("-", " ").title(),
+                    item.slug,
+                    item.difficulty or "Medium",
+                    1 if item.paid_only else 0,
+                    lc_url,
+                    item.frequency_delta
+                ))
+            upserted_count += 1
+
+            # 2. Upsert and link tags: topics, companies, curated_lists
+            tag_mappings = (
+                [(t, "topic") for t in item.topics] +
+                [(c, "company") for c in item.companies] +
+                [(l, "list") for l in item.curated_lists]
+            )
+
+            for tag_name, tag_type in tag_mappings:
+                if not tag_name or not tag_name.strip():
+                    continue
+                tag_name = tag_name.strip()
+                tag_slug = slugify(tag_name)
+
+                cursor.execute("SELECT id FROM tags WHERE slug = ? AND type = ?", (tag_slug, tag_type))
+                tag_row = cursor.fetchone()
+                if not tag_row:
+                    cursor.execute("SELECT id FROM tags WHERE slug = ?", (tag_slug,))
+                    tag_row = cursor.fetchone()
+
+                if tag_row:
+                    tag_id = tag_row["id"] if hasattr(tag_row, "keys") else tag_row[0]
+                else:
+                    cursor.execute(
+                        "INSERT INTO tags (name, slug, type) VALUES (?, ?, ?)",
+                        (tag_name, tag_slug, tag_type)
+                    )
+                    tag_id = cursor.lastrowid
+
+                cursor.execute(
+                    "INSERT OR IGNORE INTO problem_tags (problem_id, tag_id) VALUES (?, ?)",
+                    (prob_id, tag_id)
+                )
+                tags_linked += 1
+
+        conn.commit()
+        return {"upserted_problems": upserted_count, "tags_linked": tags_linked}
+
