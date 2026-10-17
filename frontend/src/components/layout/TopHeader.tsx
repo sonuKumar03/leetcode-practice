@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, Star, Lock, Plus, DownloadCloud, Sparkles } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, Lock, Plus, DownloadCloud } from 'lucide-react';
 import type { Stats } from '../../types';
 import { Button } from '../../design-system/components/Button';
 import { Input } from '../../design-system/components/Input';
@@ -70,12 +70,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               <span className="flex items-center space-x-2">
                 <span className="text-slate-400 font-medium">Category:</span>
                 <span className="text-white font-bold">{stats?.tag_name || activeTag}</span>
-                {activeTag === 'k-shortest-paths' && (
-                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-bold">
-                    <Sparkles className="w-3 h-3" />
-                    <span>Focus Tag</span>
-                  </span>
-                )}
               </span>
             ) : (
               <span>All Questions</span>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Code2,
-  Sparkles,
   Star,
   Layers,
   Search,
@@ -33,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Curated spotlight algorithms
   const spotlightTags = [
-    { slug: 'k-shortest-paths', name: 'k-Shortest Paths', isFocus: true },
+    { slug: 'k-shortest-paths', name: 'k-Shortest Paths' },
     { slug: 'shortest-path', name: 'Shortest Path' },
     { slug: 'dijkstra', name: 'Dijkstra' },
     { slug: '0-1-bfs', name: '0-1 BFS' },
@@ -159,7 +158,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}
               >
                 <div className="flex items-center space-x-2 truncate">
-                  {item.isFocus && <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
                   <span className="truncate">{item.name}</span>
                 </div>
                 {matchingTag && (
