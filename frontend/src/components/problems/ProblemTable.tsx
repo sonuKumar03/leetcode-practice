@@ -71,9 +71,9 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
       </div>
 
       <div className="flex-1 overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
+        <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr className="bg-surface border-b border-border text-text-muted font-bold uppercase tracking-wider text-[11px] sticky top-0 z-10 transition-colors">
+            <tr className="bg-surface border-b border-border text-text-muted font-bold uppercase tracking-wider text-xs sticky top-0 z-10 transition-colors">
               <th className="py-3 px-4 w-12 text-center">★</th>
               <th className="py-3 px-4 w-20">#</th>
               <th className="py-3 px-4">Title</th>
@@ -136,14 +136,14 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                     </td>
 
                     {/* Problem ID */}
-                    <td className="py-3 px-4 font-mono font-semibold text-text-muted tabular-nums">
+                    <td className="py-3.5 px-4 font-mono font-bold text-text-muted text-sm tabular-nums">
                       {problem.id}
                     </td>
 
                     {/* Title */}
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-text-main group-hover:text-brand transition">
+                        <span className="font-semibold text-text-main text-sm group-hover:text-brand transition">
                           {problem.title}
                         </span>
                         {problem.paid_only && (
@@ -158,12 +158,12 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                     </td>
 
                     {/* Difficulty */}
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <Badge variant={diffVariant}>{problem.difficulty}</Badge>
                     </td>
 
                     {/* Status Pill */}
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <StatusPill
                         status={problem.status}
                         onStatusChange={(newStatus) => onStatusChange(problem.id, newStatus)}
@@ -171,7 +171,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                     </td>
 
                     {/* Tags */}
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <div className="flex flex-wrap gap-1.5 max-w-md">
                         {problem.tags.slice(0, 3).map((tag) => {
                           const isSpecial = tag.toLowerCase().includes('shortest');
@@ -186,7 +186,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                           );
                         })}
                         {problem.tags.length > 3 && (
-                          <span className="text-[10px] text-text-subtle self-center px-1">
+                          <span className="text-xs text-text-subtle self-center px-1 font-mono">
                             +{problem.tags.length - 3}
                           </span>
                         )}
@@ -194,7 +194,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                     </td>
 
                     {/* Notes Trigger */}
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center">
                       <button
                         onClick={() => onOpenNotes(problem)}
                         className={`p-1.5 rounded-lg border transition cursor-pointer ${
@@ -209,7 +209,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                     </td>
 
                     {/* External Links */}
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-2">
                         {problem.leetcode_url && (
                           <a
@@ -228,7 +228,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                             target="_blank"
                             rel="noreferrer"
                             title="Open in Doocs Wiki"
-                            className="text-[11px] font-bold text-brand hover:text-brand-hover px-2 py-0.5 rounded bg-brand-subtle border border-brand/30 transition"
+                            className="text-xs font-semibold text-brand hover:text-brand-hover px-2.5 py-1 rounded-md bg-brand-subtle border border-brand/30 transition"
                           >
                             Wiki
                           </a>
@@ -245,7 +245,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
 
       {/* Pagination Bar */}
       {totalPages > 1 && (
-        <div className="py-3 px-6 bg-surface border-t border-border flex items-center justify-between text-xs text-text-muted transition-colors">
+        <div className="py-3.5 px-6 bg-surface border-t border-border flex items-center justify-between text-sm text-text-muted transition-colors">
           <div>
             Showing <span className="font-bold text-text-main">{(page - 1) * 50 + 1}</span> to{' '}
             <span className="font-bold text-text-main">{Math.min(page * 50, total)}</span> of{' '}

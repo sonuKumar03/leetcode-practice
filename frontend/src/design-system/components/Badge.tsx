@@ -43,7 +43,7 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       onClick={onClick}
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] border font-medium transition-colors ${variantStyles[variant]} ${interactive} ${className}`}
+      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs border font-medium transition-colors ${variantStyles[variant]} ${interactive} ${className}`}
     >
       {icon}
       <span>{children}</span>

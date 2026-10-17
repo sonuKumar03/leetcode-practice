@@ -78,7 +78,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       <div className="flex items-center justify-between gap-4">
         {/* Title & Active Category Indicator */}
         <div className="flex items-center space-x-3">
-          <h1 className="text-sm font-bold text-text-main tracking-tight">
+          <h1 className="text-base font-bold text-text-main tracking-tight">
             {activeTag ? (
               <span className="flex items-center space-x-2">
                 <span className="text-text-muted font-medium">Category:</span>
@@ -88,7 +88,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               <span>All Questions</span>
             )}
           </h1>
-          <span className="text-xs text-text-subtle">
+          <span className="text-sm text-text-subtle font-mono">
             ({stats?.total_problems || 0} total)
           </span>
         </div>
@@ -96,7 +96,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Essential Actions: Progress Bar + Add Question + Backup + Theme Toggle */}
         <div className="flex items-center space-x-2.5">
           {stats && (
-            <div className="hidden lg:flex items-center space-x-3 bg-surface border border-border rounded-xl px-3 py-1.5 text-xs">
+            <div className="hidden lg:flex items-center space-x-3 bg-surface border border-border rounded-xl px-3.5 py-1.5 text-sm">
               <span className="text-text-muted font-medium">Solved:</span>
               <span className="text-emerald-600 dark:text-emerald-400 font-bold">{stats.solved_problems}</span>
               <span className="text-text-subtle">/</span>
@@ -104,7 +104,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               <div className="w-20">
                 <ProgressBar value={solvedPct} color="#10B981" />
               </div>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">{solvedPct}%</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs font-mono">{solvedPct}%</span>
             </div>
           )}
 
@@ -202,12 +202,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </Button>
 
           {/* Sort Menu */}
-          <div className="flex items-center bg-surface border border-border rounded-xl px-2 py-1 text-xs text-text-main">
+          <div className="flex items-center bg-surface border border-border rounded-xl px-2.5 py-1.5 text-sm text-text-main">
             <SlidersHorizontal className="w-3.5 h-3.5 text-text-subtle mr-1.5" />
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
-              className="bg-transparent text-text-main text-xs focus:outline-none cursor-pointer"
+              className="bg-transparent text-text-main text-sm focus:outline-none cursor-pointer"
             >
               <option value="id_asc" className="bg-surface text-text-main">ID (1 → N)</option>
               <option value="id_desc" className="bg-surface text-text-main">ID (N → 1)</option>

@@ -53,14 +53,14 @@ export const NotesModal: React.FC<NotesModalProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-mono text-xs px-2 py-0.5 rounded bg-surface-hover font-bold text-text-main">
+              <span className="font-mono text-sm px-2.5 py-0.5 rounded bg-surface-hover font-bold text-text-main">
                 #{problem.id}
               </span>
-              <h2 className="text-base font-bold text-text-main">
+              <h2 className="text-lg font-bold text-text-main">
                 {problem.title}
               </h2>
             </div>
-            <div className="flex items-center space-x-2 mt-1 text-xs text-text-muted">
+            <div className="flex items-center space-x-2 mt-1 text-sm text-text-muted">
               <span className="font-semibold text-text-main">{problem.difficulty}</span>
               <span>•</span>
               {problem.leetcode_url && (
@@ -71,7 +71,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
                   className="text-brand hover:underline flex items-center space-x-1"
                 >
                   <span>Open on LeetCode</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               )}
             </div>
@@ -80,19 +80,19 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
         {/* Text Area */}
         <div className="flex-1 flex flex-col mb-4">
-          <label className="text-xs font-semibold text-text-main mb-1.5">
+          <label className="text-sm font-semibold text-text-main mb-1.5">
             Personal Solution Notes & Code Snippets:
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Write your intuition, time/space complexity, edge cases, or code snippet..."
-            className="flex-1 min-h-[220px] w-full p-3 text-xs font-mono rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none leading-relaxed transition-colors"
+            className="flex-1 min-h-[240px] w-full p-3.5 text-sm font-mono rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none leading-relaxed transition-colors"
           />
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between items-center pt-3 border-t border-border text-xs">
+        <div className="flex justify-between items-center pt-3 border-t border-border text-sm">
           <span className="text-text-subtle">Saved directly to SQLite database</span>
           <div className="flex space-x-2">
             <button

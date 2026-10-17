@@ -156,8 +156,8 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-text-main">Add New Question</h2>
-            <p className="text-xs text-text-muted">
+            <h2 className="text-lg font-bold text-text-main">Add New Question</h2>
+            <p className="text-sm text-text-muted">
               Enter an ID or LeetCode URL to auto-fill title, tags, and hiring companies
             </p>
           </div>
@@ -165,19 +165,19 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 
         {/* Autofill Status Banner */}
         {autofillSuccess && (
-          <div className="p-2.5 mb-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs flex items-center space-x-2 animate-fade-in">
+          <div className="p-3 mb-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-sm flex items-center space-x-2 animate-fade-in">
             <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-500" />
             <span>{autofillSuccess}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs">
+          <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-sm">
           {/* Row 1: ID with instant Auto-fill button */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
@@ -191,7 +191,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                   value={id}
                   onChange={(e) => handleIdChange(e.target.value)}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-border bg-surface text-text-main focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
                 />
                 {autofilling && (
                   <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand pointer-events-none">
@@ -211,7 +211,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                     type="button"
                     onClick={() => triggerAutofill(id)}
                     disabled={autofilling}
-                    className="text-[11px] text-brand hover:underline flex items-center space-x-1 cursor-pointer font-semibold"
+                    className="text-xs text-brand hover:underline flex items-center space-x-1 cursor-pointer font-semibold"
                   >
                     <Sparkles className="w-3 h-3 mr-0.5" />
                     <span>{autofilling ? 'Fetching...' : 'Auto-fill'}</span>

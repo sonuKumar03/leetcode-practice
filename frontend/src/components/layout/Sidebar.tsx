@@ -58,80 +58,80 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Code2 className="w-4 h-4" />
         </div>
         <div>
-          <span className="font-bold text-sm text-text-main tracking-tight">LeetTracker</span>
+          <span className="font-bold text-base text-text-main tracking-tight">LeetTracker</span>
         </div>
       </div>
 
       {/* Top Workspace Views */}
       <div className="p-3 space-y-1 flex-shrink-0">
-        <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-text-subtle mb-1">
+        <div className="px-2 text-xs font-bold uppercase tracking-wider text-text-subtle mb-1.5">
           Views
         </div>
 
         <button
           onClick={() => onSelectView('all')}
-          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'all' && selectedTag === ''
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             <Layers className="w-4 h-4 text-brand" />
             <span>All Questions</span>
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
+          <span className="text-xs px-2 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
             {stats?.total_problems || 4033}
           </span>
         </button>
 
         <button
           onClick={() => onSelectView('starred')}
-          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'starred'
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             <Star className="w-4 h-4 text-amber-500 dark:text-amber-400 fill-amber-400/20" />
             <span>Starred</span>
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
+          <span className="text-xs px-2 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
             {stats?.starred_problems || 0}
           </span>
         </button>
 
         <button
           onClick={() => onSelectView('in_progress')}
-          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'in_progress'
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             <Clock className="w-4 h-4 text-sky-500 dark:text-sky-400" />
             <span>In Progress</span>
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
+          <span className="text-xs px-2 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
             {stats?.in_progress_problems || 0}
           </span>
         </button>
 
         <button
           onClick={() => onSelectView('solved')}
-          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'solved'
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
               : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
           }`}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
             <span>Solved</span>
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+          <span className="text-xs px-2 py-0.5 rounded bg-surface-hover text-emerald-600 dark:text-emerald-400 font-bold font-mono">
             {stats?.solved_problems || 0}
           </span>
         </button>
@@ -140,12 +140,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Categories & Companies Section: Fills 100% of remaining sidebar space */}
       <div className="flex-1 min-h-0 flex flex-col p-3 pt-3 border-t border-border">
         {/* Section Header */}
-        <div className="px-1 text-[10px] font-bold uppercase tracking-wider text-text-subtle mb-2 flex items-center justify-between flex-shrink-0">
+        <div className="px-1 text-xs font-bold uppercase tracking-wider text-text-subtle mb-2 flex items-center justify-between flex-shrink-0">
           <span>Categories</span>
           {selectedTag && (
             <button
               onClick={() => onSelectTag('')}
-              className="text-brand hover:underline text-[10px] font-semibold cursor-pointer"
+              className="text-brand hover:underline text-xs font-semibold cursor-pointer"
             >
               Clear Filter
             </button>
@@ -153,13 +153,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Tab Switcher: Topics vs Companies */}
-        <div className="flex items-center p-0.5 bg-surface rounded-lg mb-2 flex-shrink-0 text-[11px] font-semibold border border-border">
+        <div className="flex items-center p-0.5 bg-surface rounded-lg mb-2 flex-shrink-0 text-xs font-semibold border border-border">
           <button
             onClick={() => {
               setCategoryType('topics');
               setTagSearch('');
             }}
-            className={`flex-1 py-1 rounded-md transition cursor-pointer text-center ${
+            className={`flex-1 py-1.5 rounded-md transition cursor-pointer text-center ${
               categoryType === 'topics'
                 ? 'bg-surface-active text-text-main shadow-xs font-bold'
                 : 'text-text-muted hover:text-text-main'
@@ -172,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               setCategoryType('companies');
               setTagSearch('');
             }}
-            className={`flex-1 py-1 rounded-md transition cursor-pointer text-center ${
+            className={`flex-1 py-1.5 rounded-md transition cursor-pointer text-center ${
               categoryType === 'companies'
                 ? 'bg-surface-active text-text-main shadow-xs font-bold'
                 : 'text-text-muted hover:text-text-main'
@@ -192,14 +192,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }
             value={tagSearch}
             onChange={(e) => setTagSearch(e.target.value)}
-            icon={<Search className="w-3.5 h-3.5" />}
+            icon={<Search className="w-4 h-4" />}
           />
         </div>
 
         {/* Scrollable list taking all remaining space down to bottom */}
         <div className="flex-1 overflow-y-auto pr-1 space-y-0.5 pb-2">
           {filteredTags.length === 0 ? (
-            <div className="py-6 text-center text-xs text-text-subtle">
+            <div className="py-6 text-center text-sm text-text-subtle">
               No {categoryType} found
             </div>
           ) : (
@@ -209,14 +209,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={t.id}
                   onClick={() => onSelectTag(active ? '' : t.slug)}
-                  className={`w-full flex items-center justify-between px-2 py-1 rounded-md text-xs transition cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[13px] transition cursor-pointer ${
                     active
                       ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
                       : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
                   }`}
                 >
                   <span className="truncate text-left">{t.name}</span>
-                  <span className="text-[10px] text-text-subtle ml-1.5 flex-shrink-0 font-mono">
+                  <span className="text-xs text-text-subtle ml-1.5 flex-shrink-0 font-mono">
                     {t.problem_count}
                   </span>
                 </button>
