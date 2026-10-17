@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Header } from './components/layout/Header';
-import { StatsCards } from './components/dashboard/StatsCards';
-import { TagFilterBar } from './components/filters/TagFilterBar';
-import { FilterControls } from './components/filters/FilterControls';
+import { Sidebar } from './components/layout/Sidebar';
+import { TopHeader } from './components/layout/TopHeader';
 import { ProblemTable } from './components/problems/ProblemTable';
 import { AddQuestionModal } from './components/modals/AddQuestionModal';
 import { NotesModal } from './components/modals/NotesModal';
@@ -12,23 +10,6 @@ import { tagsApi } from './api/tagsApi';
 import type { Problem, Tag, Stats, Status, NewProblemPayload } from './types';
 
 export function App() {
-  // Theme state
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
-
   // Main data state
   const [problems, setProblems] = useState<Problem[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -38,7 +19,7 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Filter & Pagination State - Default to 'All' to show all 4,033 problems
+  // Filters state
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState('All');
@@ -53,7 +34,7 @@ export function App() {
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [activeNotesProblem, setActiveNotesProblem] = useState<Problem | null>(null);
 
-  // Load Tags & Stats
+  // Load Metadata (Tags & Stats)
   const loadMetadata = useCallback(async () => {
     try {
       const [fetchedTags, fetchedStats] = await Promise.all([
@@ -63,7 +44,7 @@ export function App() {
       setTags(fetchedTags);
       setStats(fetchedStats);
     } catch (err) {
-      console.error('Failed to load tags or stats:', err);
+      console.error('Failed to load metadata:', err);
     }
   }, [selectedTag]);
 
@@ -100,13 +81,12 @@ export function App() {
     loadProblems();
   }, [loadProblems]);
 
-  // Handle Tag Selection
+  // Handlers
   const handleSelectTag = (tagSlug: string) => {
     setSelectedTag(tagSlug);
     setPage(1);
   };
 
-  // Status Change
   const handleStatusChange = async (id: string, newStatus: Status) => {
     setProblems((prev) =>
       prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
@@ -120,7 +100,6 @@ export function App() {
     }
   };
 
-  // Toggle Star
   const handleToggleStar = async (id: string, current: boolean) => {
     const next = !current;
     setProblems((prev) =>
@@ -135,7 +114,6 @@ export function App() {
     }
   };
 
-  // Save Notes
   const handleSaveNotes = async (id: string, notes: string) => {
     setProblems((prev) =>
       prev.map((p) => (p.id === id ? { ...p, notes } : p))
@@ -147,13 +125,11 @@ export function App() {
     }
   };
 
-  // Add Question
   const handleAddQuestion = async (payload: NewProblemPayload) => {
     await problemsApi.createProblem(payload);
     await Promise.all([loadMetadata(), loadProblems()]);
   };
 
-  // Import Tracking
   const handleImportTracking = async (
     items: Array<{ id: string; status: any; is_starred: boolean; notes: string }>
   ) => {
@@ -167,7 +143,6 @@ export function App() {
     await Promise.all([loadMetadata(), loadProblems()]);
   };
 
-  // Refresh data trigger
   const handleRefresh = async () => {
     try {
       setIsRefreshing(true);
@@ -178,35 +153,40 @@ export function App() {
   };
 
   const handlePaidToggle = () => {
-    if (paidOnly === undefined) setPaidOnly(false); // Free only
-    else if (paidOnly === false) setPaidOnly(true); // Locked only
-    else setPaidOnly(undefined); // All
+    if (paidOnly === undefined) setPaidOnly(false);
+    else if (paidOnly === false) setPaidOnly(true);
+    else setPaidOnly(undefined);
+    setPage(1);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/60 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
-      <Header
-        isDark={isDark}
-        toggleDark={() => setIsDark(!isDark)}
+    <div className="flex h-screen w-screen overflow-hidden bg-[#080B11] text-slate-100 font-sans">
+      {/* Sidebar: Navigation, Spotlight, Views, Categories */}
+      <Sidebar
+        tags={tags}
+        selectedTag={selectedTag}
+        onSelectTag={handleSelectTag}
+        statusFilter={status}
+        onSelectStatus={(s) => {
+          setStatus(s);
+          setPage(1);
+        }}
+        isStarredFilter={isStarred}
+        onToggleStarred={() => {
+          setIsStarred(!isStarred);
+          setPage(1);
+        }}
+        stats={stats}
         onOpenAddModal={() => setIsAddModalOpen(true)}
         onOpenBackupModal={() => setIsBackupModalOpen(true)}
-        onRefreshData={handleRefresh}
-        isRefreshing={isRefreshing}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
-        {/* Progress & Metric Cards */}
-        <StatsCards stats={stats} activeTag={selectedTag} />
-
-        {/* Algorithm Tag Bar */}
-        <TagFilterBar
-          tags={tags}
-          selectedTag={selectedTag}
-          onSelectTag={handleSelectTag}
-        />
-
-        {/* Filters & Search */}
-        <FilterControls
+      {/* Main Workspace */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#080B11]">
+        {/* Sticky Toolbar & Progress Header */}
+        <TopHeader
+          stats={stats}
+          activeTag={selectedTag}
           search={search}
           onSearchChange={(val) => {
             setSearch(val);
@@ -231,28 +211,32 @@ export function App() {
           onPaidToggle={handlePaidToggle}
           sortBy={sortBy}
           onSortChange={setSortBy}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
         />
 
-        {/* Problem List Table */}
-        {loading ? (
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-12 text-center shadow-sm">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mb-3" />
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Loading problems...</p>
-          </div>
-        ) : (
-          <ProblemTable
-            problems={problems}
-            total={total}
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            onStatusChange={handleStatusChange}
-            onToggleStar={handleToggleStar}
-            onOpenNotes={(prob) => setActiveNotesProblem(prob)}
-            onSelectTag={handleSelectTag}
-          />
-        )}
-      </main>
+        {/* Content Table */}
+        <main className="flex-1 overflow-y-auto flex flex-col bg-[#080B11]">
+          {loading ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent" />
+              <p className="text-xs text-slate-500 font-medium">Loading problems...</p>
+            </div>
+          ) : (
+            <ProblemTable
+              problems={problems}
+              total={total}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              onStatusChange={handleStatusChange}
+              onToggleStar={handleToggleStar}
+              onOpenNotes={(prob) => setActiveNotesProblem(prob)}
+              onSelectTag={handleSelectTag}
+            />
+          )}
+        </main>
+      </div>
 
       {/* Modals */}
       <AddQuestionModal

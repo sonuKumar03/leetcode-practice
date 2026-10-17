@@ -29,37 +29,42 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty) {
       case 'Easy':
-        return 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
       case 'Medium':
-        return 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
       case 'Hard':
-        return 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+        return 'bg-rose-500/10 text-rose-400 border-rose-500/30';
       default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700';
+        return 'bg-slate-500/10 text-slate-400 border-slate-500/30';
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden mb-8">
-      <div className="overflow-x-auto">
+    <div className="flex-1 flex flex-col h-full bg-[#080B11]">
+      <div className="flex-1 overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="bg-gray-50/80 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">
+            <tr className="bg-[#0C101A] border-b border-[#1B2333] text-slate-400 font-bold uppercase tracking-wider text-[11px] sticky top-0 z-10">
               <th className="py-3 px-4 w-12 text-center">★</th>
               <th className="py-3 px-4 w-20">#</th>
               <th className="py-3 px-4">Title</th>
               <th className="py-3 px-4 w-28">Difficulty</th>
               <th className="py-3 px-4 w-36">Status</th>
-              <th className="py-3 px-4 min-w-[200px]">Tags</th>
-              <th className="py-3 px-4 w-24 text-center">Notes</th>
+              <th className="py-3 px-4 min-w-[220px]">Algorithm Tags</th>
+              <th className="py-3 px-4 w-20 text-center">Notes</th>
               <th className="py-3 px-4 w-28 text-right">Links</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <tbody className="divide-y divide-[#171F2F]">
             {problems.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-gray-400 dark:text-gray-500">
-                  No problems found matching your current filters.
+                <td colSpan={8} className="py-20 text-center text-slate-500">
+                  <div className="max-w-xs mx-auto space-y-2">
+                    <p className="font-semibold text-slate-400 text-sm">No problems found</p>
+                    <p className="text-xs text-slate-500">
+                      Try clearing filters, searching for a different keyword, or selecting another category.
+                    </p>
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -68,40 +73,42 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                 return (
                   <tr
                     key={problem.id}
-                    className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors group"
+                    className="hover:bg-[#111726] transition-colors group"
                   >
                     {/* Star */}
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => onToggleStar(problem.id, problem.is_starred)}
-                        className="text-gray-300 dark:text-gray-600 hover:text-amber-400 transition"
+                        className="text-slate-600 hover:text-amber-400 transition"
                       >
                         <Star
                           className={`w-4 h-4 ${
-                            problem.is_starred ? 'fill-amber-400 text-amber-500' : ''
+                            problem.is_starred
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'hover:fill-amber-400/20'
                           }`}
                         />
                       </button>
                     </td>
 
                     {/* Problem ID */}
-                    <td className="py-3 px-4 font-mono font-medium text-gray-600 dark:text-gray-400">
+                    <td className="py-3 px-4 font-mono font-semibold text-slate-400 tabular-nums">
                       {problem.id}
                     </td>
 
                     {/* Title */}
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                        <span className="font-semibold text-slate-200 group-hover:text-indigo-400 transition">
                           {problem.title}
                         </span>
                         {problem.paid_only && (
-                          <span title="Premium Problem">
-                            <Lock className="w-3.5 h-3.5 text-amber-500 inline" />
+                          <span title="Premium Question">
+                            <Lock className="w-3.5 h-3.5 text-amber-400 inline" />
                           </span>
                         )}
                         {problem.source === 'custom' && (
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
                             Custom
                           </span>
                         )}
@@ -119,7 +126,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                       </span>
                     </td>
 
-                    {/* Status Toggle */}
+                    {/* Status Pill */}
                     <td className="py-3 px-4">
                       <StatusPill
                         status={problem.status}
@@ -129,36 +136,39 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
 
                     {/* Tags */}
                     <td className="py-3 px-4">
-                      <div className="flex flex-wrap gap-1 max-w-sm">
-                        {problem.tags.slice(0, 3).map((tag) => (
-                          <button
-                            key={tag}
-                            onClick={() => onSelectTag(tag.toLowerCase().replace(/\s+/g, '-'))}
-                            className={`px-2 py-0.5 rounded text-[10px] font-medium transition ${
-                              tag.toLowerCase().includes('shortest')
-                                ? 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
-                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
-                            }`}
-                          >
-                            {tag}
-                          </button>
-                        ))}
+                      <div className="flex flex-wrap gap-1.5 max-w-md">
+                        {problem.tags.slice(0, 3).map((tag) => {
+                          const isSpecial = tag.toLowerCase().includes('shortest');
+                          return (
+                            <button
+                              key={tag}
+                              onClick={() => onSelectTag(tag.toLowerCase().replace(/\s+/g, '-'))}
+                              className={`px-2 py-0.5 rounded text-[10px] font-medium transition cursor-pointer ${
+                                isSpecial
+                                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25'
+                                  : 'bg-[#151D2C] text-slate-400 border border-[#212C3F] hover:text-white hover:bg-[#1E293B]'
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
                         {problem.tags.length > 3 && (
-                          <span className="text-[10px] text-gray-400 self-center">
+                          <span className="text-[10px] text-slate-500 self-center px-1">
                             +{problem.tags.length - 3}
                           </span>
                         )}
                       </div>
                     </td>
 
-                    {/* Notes Button */}
+                    {/* Notes Trigger */}
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => onOpenNotes(problem)}
-                        className={`p-1.5 rounded-lg border transition ${
+                        className={`p-1.5 rounded-lg border transition cursor-pointer ${
                           hasNotes
-                            ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-600 dark:text-amber-400'
-                            : 'border-transparent text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300'
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                            : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-[#161E2E]'
                         }`}
                         title={hasNotes ? 'View/Edit Notes' : 'Add Notes'}
                       >
@@ -174,8 +184,8 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                             href={problem.leetcode_url}
                             target="_blank"
                             rel="noreferrer"
-                            title="Open in LeetCode"
-                            className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/40 text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                            title="Open on LeetCode"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-[#161E2E] transition"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </a>
@@ -186,7 +196,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                             target="_blank"
                             rel="noreferrer"
                             title="Open in Doocs Wiki"
-                            className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                            className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 transition"
                           >
                             Wiki
                           </a>
@@ -201,31 +211,29 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
         </table>
       </div>
 
-      {/* Pagination Footer */}
+      {/* Pagination Bar */}
       {totalPages > 1 && (
-        <div className="py-3 px-4 bg-gray-50/50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div className="py-3 px-6 bg-[#0C101A] border-t border-[#1B2333] flex items-center justify-between text-xs text-slate-400">
           <div>
-            Showing <span className="font-semibold text-gray-900 dark:text-white">{(page - 1) * 50 + 1}</span> to{' '}
-            <span className="font-semibold text-gray-900 dark:text-white">
-              {Math.min(page * 50, total)}
-            </span>{' '}
-            of <span className="font-semibold text-gray-900 dark:text-white">{total}</span> problems
+            Showing <span className="font-bold text-white">{(page - 1) * 50 + 1}</span> to{' '}
+            <span className="font-bold text-white">{Math.min(page * 50, total)}</span> of{' '}
+            <span className="font-bold text-white">{total}</span> questions
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="p-1.5 rounded-lg border border-[#212C40] bg-[#131926] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1C2538] text-slate-300 transition"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-medium px-2">
+            <span className="font-semibold text-slate-300 px-2">
               Page {page} of {totalPages}
             </span>
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="p-1.5 rounded-lg border border-[#212C40] bg-[#131926] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1C2538] text-slate-300 transition"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

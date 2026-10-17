@@ -16,8 +16,8 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, onStatusChange }
     else if (status === 'in_progress') {
       next = 'solved';
       confetti({
-        particleCount: 50,
-        spread: 60,
+        particleCount: 40,
+        spread: 50,
         origin: { y: 0.8 },
       });
     } else if (status === 'solved') {
@@ -30,17 +30,17 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, onStatusChange }
     todo: {
       label: 'To Do',
       icon: Circle,
-      style: 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700',
+      style: 'bg-[#151D2C] text-slate-400 hover:text-slate-200 border border-[#212C3F] hover:border-slate-500',
     },
     in_progress: {
       label: 'In Progress',
       icon: Clock,
-      style: 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-200',
+      style: 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25',
     },
     solved: {
       label: 'Solved',
       icon: CheckCircle2,
-      style: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-200',
+      style: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25',
     },
   };
 
@@ -51,7 +51,7 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, onStatusChange }
     <button
       onClick={handleClick}
       title="Click to toggle status: Todo -> In Progress -> Solved"
-      className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition active:scale-95 ${current.style}`}
+      className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition active:scale-95 cursor-pointer ${current.style}`}
     >
       <Icon className="w-3.5 h-3.5" />
       <span>{current.label}</span>

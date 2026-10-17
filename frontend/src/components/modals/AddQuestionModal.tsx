@@ -61,27 +61,27 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="bg-[#0C101A] border border-[#1B2333] rounded-2xl w-full max-w-lg p-6 shadow-2xl relative text-slate-200">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-lg"
+          className="absolute right-4 top-4 text-slate-500 hover:text-white p-1 rounded-lg"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center space-x-2 mb-4">
-          <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+        <div className="flex items-center space-x-3 mb-5">
+          <div className="p-2 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Add New Question</h2>
-            <p className="text-xs text-gray-500">Insert custom interview problems or new LeetCode questions</p>
+            <h2 className="text-base font-bold text-white">Add New Question</h2>
+            <p className="text-xs text-slate-400">Insert custom interview problems or new LeetCode questions</p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs">
+          <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
             {error}
           </div>
         )}
@@ -89,20 +89,20 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
-              <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block font-semibold text-slate-300 mb-1">
                 ID / Number *
               </label>
               <input
                 type="text"
-                placeholder="e.g. 2046 or c-1"
+                placeholder="e.g. 2046"
                 value={id}
                 onChange={(e) => setId(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-3 py-2 rounded-xl border border-[#212C3F] bg-[#111726] text-white focus:outline-none focus:border-indigo-500"
               />
             </div>
             <div className="col-span-2">
-              <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block font-semibold text-slate-300 mb-1">
                 Problem Title *
               </label>
               <input
@@ -111,20 +111,20 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-3 py-2 rounded-xl border border-[#212C3F] bg-[#111726] text-white focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block font-semibold text-slate-300 mb-1">
                 Difficulty
               </label>
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value as Difficulty)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-3 py-2 rounded-xl border border-[#212C3F] bg-[#111726] text-white focus:outline-none focus:border-indigo-500"
               >
                 <option value="Easy">Easy</option>
                 <option value="Medium">Medium</option>
@@ -132,7 +132,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block font-semibold text-slate-300 mb-1">
                 LeetCode / Web URL
               </label>
               <input
@@ -140,13 +140,13 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
                 placeholder="https://leetcode.com/problems/..."
                 value={leetcodeUrl}
                 onChange={(e) => setLeetcodeUrl(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-3 py-2 rounded-xl border border-[#212C3F] bg-[#111726] text-white focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block font-semibold text-slate-300 mb-1">
               Algorithm Tags (comma-separated)
             </label>
             <input
@@ -154,12 +154,12 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
               placeholder="k-Shortest Paths, Graph, Dijkstra"
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full px-3 py-2 rounded-xl border border-[#212C3F] bg-[#111726] text-white focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block font-semibold text-slate-300 mb-1">
               Initial Notes or Hints
             </label>
             <textarea
@@ -167,22 +167,22 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
               placeholder="e.g. Approach outline, recurrence relation, or complexity..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full px-3 py-2 rounded-xl border border-[#212C3F] bg-[#111726] text-white focus:outline-none focus:border-indigo-500"
             />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex justify-end space-x-3 pt-3 border-t border-[#1B2333]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              className="px-4 py-2 rounded-xl font-medium text-slate-400 hover:text-white hover:bg-[#151C2C] transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 shadow-md shadow-indigo-600/30 transition disabled:opacity-50"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 shadow-md shadow-indigo-600/30 transition disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
               <span>{loading ? 'Adding...' : 'Add to Catalog'}</span>
