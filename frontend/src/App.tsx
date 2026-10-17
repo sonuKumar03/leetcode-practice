@@ -38,9 +38,8 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Filter & Pagination State
-  // Default to 'k-shortest-paths' as requested by the user!
-  const [selectedTag, setSelectedTag] = useState<string>('k-shortest-paths');
+  // Filter & Pagination State - Default to 'All' to show all 4,033 problems
+  const [selectedTag, setSelectedTag] = useState<string>('');
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState('All');
   const [status, setStatus] = useState('All');
