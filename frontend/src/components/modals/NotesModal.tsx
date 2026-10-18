@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Save, FileText, ExternalLink } from 'lucide-react';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import type { Problem } from '../../types';
 
 interface NotesModalProps {
@@ -15,6 +17,9 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   onClose,
   onSaveNotes,
 }) => {
+  useEscapeKey(isOpen, onClose);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(containerRef, isOpen);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -38,9 +43,10 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-elevated border border-border rounded-2xl w-full max-w-xl p-6 shadow-2xl relative flex flex-col max-h-[90vh] text-text-main transition-colors">
+      <div ref={containerRef} className="bg-elevated border border-border rounded-2xl w-full max-w-xl p-6 shadow-2xl relative flex flex-col max-h-[90vh] text-text-main transition-colors">
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute right-4 top-4 text-text-subtle hover:text-text-main p-1 rounded-lg transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />

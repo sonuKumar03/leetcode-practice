@@ -8,6 +8,7 @@ import {
   DownloadCloud,
   Sun,
   Moon,
+  Menu,
 } from 'lucide-react';
 import type { Stats } from '../../types';
 import { Button } from '../../design-system/components/Button';
@@ -20,6 +21,7 @@ import { useTheme } from '../../context/ThemeContext';
 interface TopHeaderProps {
   stats: Stats | null;
   activeTag: string;
+  filteredTotal: number;
   search: string;
   onSearchChange: (val: string) => void;
   difficulty: string;
@@ -34,11 +36,14 @@ interface TopHeaderProps {
   onSortChange: (val: string) => void;
   onOpenAddModal: () => void;
   onOpenBackupModal: () => void;
+  onOpenSidebar: () => void;
+  searchInputRef?: React.Ref<HTMLInputElement>;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
   stats,
   activeTag,
+  filteredTotal,
   search,
   onSearchChange,
   difficulty,
@@ -53,8 +58,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onSortChange,
   onOpenAddModal,
   onOpenBackupModal,
+  onOpenSidebar,
+  searchInputRef,
 }) => {
   const { theme, toggleTheme } = useTheme();
+  const themeLabel = theme === 'dark' ? 'Dark' : 'Light';
 
   const difficultyOptions: SegmentOption<string>[] = [
     { value: 'All', label: 'All' },
@@ -73,12 +81,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const solvedPct = stats ? stats.completion_percentage : 0;
 
   return (
-    <header className="bg-header/90 backdrop-blur-md border-b border-border px-6 py-3.5 space-y-3 sticky top-0 z-20 select-none transition-colors">
+    <header className="bg-header/90 backdrop-blur-md border-b border-border px-4 sm:px-6 py-3 space-y-3 sticky top-0 z-20 select-none transition-colors">
       {/* Top Level: Focused Title & Global Action Buttons */}
       <div className="flex items-center justify-between gap-4">
         {/* Title & Active Category Indicator */}
-        <div className="flex items-center space-x-3">
-          <h1 className="text-base font-bold text-text-main tracking-tight">
+        <div className="flex items-center space-x-3 min-w-0">
+          <button
+            onClick={onOpenSidebar}
+            aria-label="Open navigation"
+            className="lg:hidden p-1.5 -ml-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <h1 className="text-base font-bold text-text-main tracking-tight truncate whitespace-nowrap">
             {activeTag ? (
               <span className="flex items-center space-x-2">
                 <span className="text-text-muted font-medium">Category:</span>
@@ -88,24 +103,33 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               <span>All Questions</span>
             )}
           </h1>
-          <span className="text-sm text-text-subtle font-mono">
-            ({stats?.total_problems || 0} total)
+          <span className="hidden sm:inline whitespace-nowrap text-sm text-text-subtle font-mono">
+            ({filteredTotal} total)
           </span>
         </div>
 
         {/* Essential Actions: Progress Bar + Add Question + Backup + Theme Toggle */}
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2 flex-shrink-0">
           {stats && (
-            <div className="hidden lg:flex items-center space-x-3 bg-surface border border-border rounded-xl px-3.5 py-1.5 text-sm">
-              <span className="text-text-muted font-medium">Solved:</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">{stats.solved_problems}</span>
-              <span className="text-text-subtle">/</span>
-              <span className="text-text-main font-semibold">{stats.total_problems}</span>
-              <div className="w-20">
-                <ProgressBar value={solvedPct} color="#10B981" />
+            <>
+              {/* Compact mobile progress */}
+              <div className="flex lg:hidden items-center space-x-1.5 bg-surface border border-border rounded-lg px-2 py-1 text-xs">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{stats.solved_problems}</span>
+                <span className="text-text-subtle">/</span>
+                <span className="text-text-main font-semibold">{stats.total_problems}</span>
               </div>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs font-mono">{solvedPct}%</span>
-            </div>
+              {/* Full desktop progress */}
+              <div className="hidden lg:flex items-center space-x-3 bg-surface border border-border rounded-xl px-3.5 py-1.5 text-sm">
+                <span className="text-text-muted font-medium">Solved:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{stats.solved_problems}</span>
+                <span className="text-text-subtle">/</span>
+                <span className="text-text-main font-semibold">{stats.total_problems}</span>
+                <div className="w-20">
+                  <ProgressBar value={solvedPct} color="#10B981" />
+                </div>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs font-mono">{solvedPct}%</span>
+              </div>
+            </>
           )}
 
           <Button
@@ -113,8 +137,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             size="sm"
             icon={<Plus className="w-3.5 h-3.5" />}
             onClick={onOpenAddModal}
+            aria-label="Add question"
           >
-            Add Question
+            <span className="hidden sm:inline">Add Question</span>
           </Button>
 
           <Button
@@ -122,34 +147,38 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             size="sm"
             icon={<DownloadCloud className="w-3.5 h-3.5" />}
             onClick={onOpenBackupModal}
+            aria-label="Backup"
           >
-            Backup
+            <span className="hidden sm:inline">Backup</span>
           </Button>
 
-          {/* Theme Toggle Button */}
+          {/* Theme Toggle Button: dark <-> light */}
           <Button
             variant="secondary"
             size="sm"
             icon={
               theme === 'dark' ? (
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-              ) : (
                 <Moon className="w-3.5 h-3.5 text-brand" />
+              ) : (
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
               )
             }
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            title={`Theme: ${themeLabel} (click to toggle)`}
+            aria-label={`Theme: ${themeLabel}. Click to toggle`}
+            className="md:w-[84px]"
           >
-            {theme === 'dark' ? 'Light' : 'Dark'}
+            <span className="hidden md:inline">{themeLabel}</span>
           </Button>
         </div>
       </div>
 
       {/* Filter Row: Search & Segmented Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+      <div className="flex flex-col 2xl:flex-row 2xl:items-center gap-3">
         {/* Search Input */}
-        <div className="flex-1 min-w-[220px] max-w-sm">
+        <div className="w-full 2xl:max-w-xs flex-shrink-0">
           <Input
+            ref={searchInputRef}
             placeholder="Search questions by ID or title... (/)"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -158,7 +187,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
 
         {/* Segmented Filters */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center flex-wrap gap-2">
           {/* Difficulty Segment */}
           <SegmentedControl
             options={difficultyOptions}
@@ -188,7 +217,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             }
             onClick={onToggleStarred}
           >
-            Starred
+            <span className="whitespace-nowrap">Starred</span>
           </Button>
 
           {/* Access Filter */}
@@ -198,17 +227,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             icon={<Lock className="w-3.5 h-3.5" />}
             onClick={onPaidToggle}
           >
-            {paidOnly === false ? 'Free' : paidOnly === true ? 'Locked' : 'Access'}
+            <span className="whitespace-nowrap">{paidOnly === false ? 'Free only' : paidOnly === true ? 'Premium only' : 'All access'}</span>
           </Button>
 
           {/* Sort Menu */}
-          <div className="flex items-center bg-surface border border-border rounded-xl px-2.5 py-1.5 text-sm text-text-main">
+          <div className="flex items-center flex-shrink-0 bg-surface border border-border rounded-xl px-2.5 py-1.5 text-sm text-text-main">
             <SlidersHorizontal className="w-3.5 h-3.5 text-text-subtle mr-1.5" />
             <select
+              aria-label="Sort questions"
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
               className="bg-transparent text-text-main text-sm focus:outline-none cursor-pointer"
             >
+              <option value="frequency_desc" className="bg-surface text-text-main">Frequency (High → Low)</option>
               <option value="id_asc" className="bg-surface text-text-main">ID (1 → N)</option>
               <option value="id_desc" className="bg-surface text-text-main">ID (N → 1)</option>
               <option value="difficulty_asc" className="bg-surface text-text-main">Difficulty (Easy → Hard)</option>

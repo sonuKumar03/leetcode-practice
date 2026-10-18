@@ -17,6 +17,8 @@ interface SidebarProps {
   activeView: 'all' | 'starred' | 'in_progress' | 'solved';
   onSelectView: (view: 'all' | 'starred' | 'in_progress' | 'solved') => void;
   stats: Stats | null;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -26,12 +28,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeView,
   onSelectView,
   stats,
+  isOpen,
+  onClose,
 }) => {
   const [categoryType, setCategoryType] = useState<'topics' | 'companies'>('topics');
   const [tagSearch, setTagSearch] = useState('');
 
-  const topicTags = useMemo(() => tags.filter((t) => t.type !== 'company'), [tags]);
-  const companyTags = useMemo(() => tags.filter((t) => t.type === 'company'), [tags]);
+  const topicTags = useMemo(() => tags.filter((t) => t.type !== 'company').sort((a, b) => b.problem_count - a.problem_count), [tags]);
+  const companyTags = useMemo(() => tags.filter((t) => t.type === 'company').sort((a, b) => b.problem_count - a.problem_count), [tags]);
 
   // Auto-switch to company tab if a company tag is selected externally
   useEffect(() => {
@@ -51,7 +55,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [currentList, tagSearch]);
 
   return (
-    <aside className="w-64 bg-sidebar border-r border-border flex flex-col h-screen select-none flex-shrink-0 text-text-muted transition-colors">
+    <>
+    {isOpen && (
+      <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={onClose} aria-hidden="true" />
+    )}
+    <aside
+      className={`w-72 bg-sidebar border-r border-border flex flex-col h-screen select-none flex-shrink-0 text-text-muted transition-transform duration-200 fixed inset-y-0 left-0 z-40 lg:static lg:translate-x-0 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
       {/* Brand Header */}
       <div className="p-4 border-b border-border flex items-center space-x-3">
         <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shadow-sm shadow-brand/20">
@@ -64,16 +76,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Top Workspace Views */}
       <div className="p-3 space-y-1 flex-shrink-0">
-        <div className="px-2 text-xs font-bold uppercase tracking-wider text-text-subtle mb-1.5">
+        <div className="px-2 text-xs font-semibold text-text-subtle mb-1.5">
           Views
         </div>
 
         <button
-          onClick={() => onSelectView('all')}
+          onClick={() => { onClose(); onSelectView('all'); }}
           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'all' && selectedTag === ''
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
-              : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
+              : 'text-text-muted hover:text-text-main hover:bg-surface-hover border border-transparent'
           }`}
         >
           <div className="flex items-center space-x-2.5">
@@ -81,16 +93,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>All Questions</span>
           </div>
           <span className="text-xs px-2 py-0.5 rounded bg-surface-hover text-text-muted font-mono">
-            {stats?.total_problems || 4033}
+            {stats?.total_problems ?? 0}
           </span>
         </button>
 
         <button
-          onClick={() => onSelectView('starred')}
+          onClick={() => { onClose(); onSelectView('starred'); }}
           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'starred'
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
-              : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
+              : 'text-text-muted hover:text-text-main hover:bg-surface-hover border border-transparent'
           }`}
         >
           <div className="flex items-center space-x-2.5">
@@ -103,11 +115,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => onSelectView('in_progress')}
+          onClick={() => { onClose(); onSelectView('in_progress'); }}
           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'in_progress'
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
-              : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
+              : 'text-text-muted hover:text-text-main hover:bg-surface-hover border border-transparent'
           }`}
         >
           <div className="flex items-center space-x-2.5">
@@ -120,11 +132,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => onSelectView('solved')}
+          onClick={() => { onClose(); onSelectView('solved'); }}
           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
             activeView === 'solved'
               ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
-              : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
+              : 'text-text-muted hover:text-text-main hover:bg-surface-hover border border-transparent'
           }`}
         >
           <div className="flex items-center space-x-2.5">
@@ -140,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Categories & Companies Section: Fills 100% of remaining sidebar space */}
       <div className="flex-1 min-h-0 flex flex-col p-3 pt-3 border-t border-border">
         {/* Section Header */}
-        <div className="px-1 text-xs font-bold uppercase tracking-wider text-text-subtle mb-2 flex items-center justify-between flex-shrink-0">
+        <div className="px-1 text-xs font-semibold text-text-subtle mb-2 flex items-center justify-between flex-shrink-0">
           <span>Categories</span>
           {selectedTag && (
             <button
@@ -153,32 +165,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Tab Switcher: Topics vs Companies */}
-        <div className="flex items-center p-0.5 bg-surface rounded-lg mb-2 flex-shrink-0 text-xs font-semibold border border-border">
+        <div className="flex items-center p-1 bg-surface-hover/80 dark:bg-surface/80 rounded-xl mb-2.5 flex-shrink-0 text-xs border border-border/50">
           <button
             onClick={() => {
               setCategoryType('topics');
               setTagSearch('');
             }}
-            className={`flex-1 py-1.5 rounded-md transition cursor-pointer text-center ${
+            className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
               categoryType === 'topics'
-                ? 'bg-surface-active text-text-main shadow-xs font-bold'
-                : 'text-text-muted hover:text-text-main'
+                ? 'bg-white dark:bg-surface-active text-text-main shadow-xs font-semibold'
+                : 'text-text-muted hover:text-text-main font-medium'
             }`}
           >
-            Topics ({topicTags.length})
+            <span>Topics</span>
+            <span
+              className={`ml-1.5 px-1.5 py-0.5 rounded-md text-[11px] font-mono leading-none transition-colors ${
+                categoryType === 'topics'
+                  ? 'bg-brand-subtle text-brand font-semibold'
+                  : 'bg-black/5 dark:bg-white/10 text-text-muted'
+              }`}
+            >
+              {topicTags.length}
+            </span>
           </button>
           <button
             onClick={() => {
               setCategoryType('companies');
               setTagSearch('');
             }}
-            className={`flex-1 py-1.5 rounded-md transition cursor-pointer text-center ${
+            className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
               categoryType === 'companies'
-                ? 'bg-surface-active text-text-main shadow-xs font-bold'
-                : 'text-text-muted hover:text-text-main'
+                ? 'bg-white dark:bg-surface-active text-text-main shadow-xs font-semibold'
+                : 'text-text-muted hover:text-text-main font-medium'
             }`}
           >
-            Companies ({companyTags.length})
+            <span>Companies</span>
+            <span
+              className={`ml-1.5 px-1.5 py-0.5 rounded-md text-[11px] font-mono leading-none transition-colors ${
+                categoryType === 'companies'
+                  ? 'bg-brand-subtle text-brand font-semibold'
+                  : 'bg-black/5 dark:bg-white/10 text-text-muted'
+              }`}
+            >
+              {companyTags.length}
+            </span>
           </button>
         </div>
 
@@ -208,11 +238,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               return (
                 <button
                   key={t.id}
-                  onClick={() => onSelectTag(active ? '' : t.slug)}
+                  onClick={() => { onClose(); onSelectTag(active ? '' : t.slug); }}
                   className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[13px] transition cursor-pointer ${
                     active
                       ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
-                      : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
+                      : 'text-text-muted hover:text-text-main hover:bg-surface-hover border border-transparent'
                   }`}
                 >
                   <span className="truncate text-left">{t.name}</span>
@@ -226,5 +256,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
     </aside>
+    </>
   );
 };

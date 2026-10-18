@@ -37,13 +37,13 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, onStatusChange }
       label: 'In Progress',
       icon: Clock,
       style:
-        'bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25',
+        'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25',
     },
     solved: {
       label: 'Solved',
       icon: CheckCircle2,
       style:
-        'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25',
+        'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25',
     },
   };
 
@@ -53,8 +53,8 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, onStatusChange }
   return (
     <button
       onClick={handleClick}
-      title="Click to toggle status: Todo -> In Progress -> Solved"
-      className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition active:scale-95 cursor-pointer ${current.style}`}
+      title="Click to cycle: To Do → In Progress → Solved → To Do"
+      className={`inline-flex items-center whitespace-nowrap space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition active:scale-95 cursor-pointer ${current.style}`}
     >
       <Icon className="w-3.5 h-3.5" />
       <span>{current.label}</span>
