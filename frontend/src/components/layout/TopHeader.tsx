@@ -264,7 +264,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 <span className="text-border-muted">|</span>
                 <div className="flex items-center gap-2 text-xs font-mono font-semibold">
                   <span className="text-emerald-600 dark:text-emerald-400" title="Easy">{stats.easy_solved}/{stats.easy_total} E</span>
+                  <span className="text-text-subtle/40">·</span>
                   <span className="text-amber-600 dark:text-amber-400" title="Medium">{stats.medium_solved}/{stats.medium_total} M</span>
+                  <span className="text-text-subtle/40">·</span>
                   <span className="text-rose-600 dark:text-rose-400" title="Hard">{stats.hard_solved}/{stats.hard_total} H</span>
                 </div>
               </div>
