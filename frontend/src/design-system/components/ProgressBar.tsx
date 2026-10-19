@@ -9,7 +9,7 @@ interface ProgressBarProps {
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   value,
-  color = '#10B981',
+  color,
   size = 'sm',
   className = '',
 }) => {
@@ -18,13 +18,13 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
   return (
     <div
-      className={`w-full bg-slate-200 dark:bg-[#182136] rounded-full overflow-hidden ${heightClass} ${className}`}
+      className={`w-full bg-surface-active rounded-full overflow-hidden ${heightClass} ${className}`}
     >
       <div
-        className={`${heightClass} rounded-full transition-all duration-300`}
+        className={`${heightClass} rounded-full transition-all duration-300 bg-emerald-500`}
         style={{
           width: `${clamped}%`,
-          backgroundColor: color,
+          ...(color ? { backgroundColor: color } : {}),
         }}
       />
     </div>

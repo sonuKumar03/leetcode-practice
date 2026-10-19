@@ -149,7 +149,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-semibold text-white bg-brand hover:bg-brand-hover active:scale-95 shadow-sm transition disabled:opacity-50 cursor-pointer"
+                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-semibold text-brand-fg bg-brand hover:bg-brand-hover active:scale-95 shadow-sm transition disabled:opacity-50 cursor-pointer"
               >
                 {exporting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

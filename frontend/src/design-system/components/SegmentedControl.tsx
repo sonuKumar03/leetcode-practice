@@ -20,25 +20,25 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   return (
     <div
-      className={`inline-flex items-center bg-surface border border-border rounded-xl p-1 gap-0.5 select-none ${className}`}
+      className={`inline-flex flex-shrink-0 items-center bg-surface border border-border rounded-xl p-1 gap-0.5 select-none ${className}`}
     >
       {options.map((option) => {
         const isActive = value === option.value;
 
-        let activeStyle = 'bg-brand text-white shadow-sm';
+        let activeStyle = 'bg-brand text-brand-fg shadow-sm';
         if (option.variant === 'easy') {
-          activeStyle = 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40';
+          activeStyle = 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40';
         } else if (option.variant === 'medium') {
-          activeStyle = 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40';
+          activeStyle = 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40';
         } else if (option.variant === 'hard') {
-          activeStyle = 'bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/40';
+          activeStyle = 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40';
         }
 
         return (
           <button
             key={option.value}
             onClick={() => onChange(option.value)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               isActive
                 ? activeStyle
                 : 'text-text-muted hover:text-text-main hover:bg-surface-hover'

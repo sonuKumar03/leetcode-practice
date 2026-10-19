@@ -319,7 +319,7 @@ export const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
             <button
               type="submit"
               disabled={loading || autofilling}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-brand hover:bg-brand-hover active:scale-95 shadow-md shadow-brand/20 transition disabled:opacity-50 cursor-pointer"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-brand-fg bg-brand hover:bg-brand-hover active:scale-95 shadow-md shadow-brand/20 transition disabled:opacity-50 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{loading ? 'Adding...' : 'Add to Catalog'}</span>

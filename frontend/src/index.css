@@ -23,32 +23,34 @@
   --color-brand: var(--color-brand);
   --color-brand-hover: var(--color-brand-hover);
   --color-brand-subtle: var(--color-brand-subtle);
+  --color-brand-fg: var(--color-brand-fg);
 }
 
 :root {
   color-scheme: light;
-  --bg-canvas: #F6F8FA;
-  --bg-sidebar: #FFFFFF;
-  --bg-header: #FFFFFF;
-  --bg-surface: #FFFFFF;
-  --bg-surface-hover: #F3F4F6;
-  --bg-surface-active: #E5E7EB;
-  --bg-elevated: #FFFFFF;
+  --bg-canvas: #F5F3EF;          /* Warm Stone */
+  --bg-sidebar: #FDFCFA;         /* Warm White */
+  --bg-header: #FDFCFA;
+  --bg-surface: #FDFCFA;
+  --bg-surface-hover: #F0EDE8;
+  --bg-surface-active: #E5E1DA;
+  --bg-elevated: #FDFCFA;
 
-  --border-subtle: #D0D7DE;
-  --border-muted: #AFB8C1;
+  --border-subtle: #D6D1C9;      /* Warm Stone Border */
+  --border-muted: #B8B2A8;
 
-  --text-primary: #1F2328;
-  --text-secondary: #57606A;
-  --text-muted: #8C959F;
+  --text-primary: #1C1917;       /* Stone 900 */
+  --text-secondary: #57534E;     /* Stone 600 */
+  --text-muted: #78716C;         /* Stone 500 — 4.5:1 on canvas */
 
-  --color-brand: #0891B2;        /* Electric Deep Cyan */
-  --color-brand-hover: #0E7490;
-  --color-brand-subtle: #ECFEFF;
+  --color-brand: #0D9488;        /* Teal 600: 4.6:1 on white */
+  --color-brand-hover: #0F766E;
+  --color-brand-subtle: #F0FDFA;
+  --color-brand-fg: #FFFFFF;
 
-  /* Sleek light scrollbar */
-  --scrollbar-thumb: rgba(100, 116, 139, 0.3);
-  --scrollbar-thumb-hover: rgba(100, 116, 139, 0.6);
+  /* Warm light scrollbar */
+  --scrollbar-thumb: rgba(120, 113, 108, 0.3);
+  --scrollbar-thumb-hover: rgba(120, 113, 108, 0.55);
 }
 
 .dark {
@@ -61,16 +63,17 @@
   --bg-surface-active: #2B3448; /* Active Selection */
   --bg-elevated: #1B2230;       /* Modals & Popovers */
 
-  --border-subtle: #263042;     /* Precise Architectural Hairline */
-  --border-muted: #3B465C;
+  --border-subtle: #2D3850;     /* Precise Architectural Hairline */
+  --border-muted: #44506A;
 
   --text-primary: #F0F6FC;      /* High-contrast Clean Foreground */
-  --text-secondary: #8B949E;    /* Muted Slate Secondary */
-  --text-muted: #6E7681;        /* Subtle Metadata */
+  --text-secondary: #A5AFBB;    /* Muted Slate Secondary */
+  --text-muted: #8B96A3;        /* Subtle Metadata */
 
-  --color-brand: #06B6D4;        /* Electric Neon Cyan */
-  --color-brand-hover: #0891B2;
-  --color-brand-subtle: rgba(6, 182, 212, 0.15);
+  --color-brand: #2DD4BF;        /* Teal 400 */
+  --color-brand-hover: #14B8A6;
+  --color-brand-subtle: rgba(45, 212, 191, 0.12);
+  --color-brand-fg: #042F2E;
 
   /* Sleek dark scrollbar */
   --scrollbar-thumb: rgba(139, 148, 158, 0.25);
@@ -87,13 +90,12 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.15s ease, color 0.15s ease;
     scrollbar-gutter: stable;
   }
 
   ::selection {
     background-color: var(--color-brand);
-    color: #FFFFFF;
+    color: var(--color-brand-fg);
   }
 
   /* Universal custom scrollbars: thin, rounded pill, transparent track */
@@ -125,6 +127,12 @@
   *::-webkit-scrollbar-corner {
     background: transparent;
   }
+}
+
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
 }
 
 @keyframes indeterminate {

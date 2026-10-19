@@ -24,11 +24,7 @@ export const tokens = {
     brand: 'var(--color-brand)',
     brandHover: 'var(--color-brand-hover)',
     brandSubtle: 'var(--color-brand-subtle)',
-
-    // Difficulties
-    easy: '#10B981',
-    medium: '#F59E0B',
-    hard: '#EF4444',
+    brandFg: 'var(--color-brand-fg)',
   },
   typography: {
     fontSans: 'var(--font-sans)',

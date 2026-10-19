@@ -10,11 +10,14 @@ interface ProblemTableProps {
   page: number;
   totalPages: number;
   loading?: boolean;
+  hasActiveFilters?: boolean;
   onPageChange: (newPage: number) => void;
   onStatusChange: (id: string, newStatus: Status) => void;
   onToggleStar: (id: string, current: boolean) => void;
   onOpenNotes: (problem: Problem) => void;
   onSelectTag: (tag: string) => void;
+  onClearFilters?: () => void;
+  onAddQuestion?: () => void;
   companyNames: Set<string>;
   tagSlugMap: Map<string, string>;
 }
@@ -83,7 +86,7 @@ const PaginationBar: React.FC<{
           onClick={() => onPageChange(page - 1)}
           aria-label="Previous page"
           disabled={page <= 1}
-          className="p-1.5 rounded-lg border border-border bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-hover text-text-main transition cursor-pointer"
+          className="p-1.5 rounded-lg border border-border bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-hover text-text-main transition cursor-pointer focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -94,7 +97,7 @@ const PaginationBar: React.FC<{
           onClick={() => onPageChange(page + 1)}
           aria-label="Next page"
           disabled={page >= totalPages}
-          className="p-1.5 rounded-lg border border-border bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-hover text-text-main transition cursor-pointer"
+          className="p-1.5 rounded-lg border border-border bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-hover text-text-main transition cursor-pointer focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -128,11 +131,14 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
   page,
   totalPages,
   loading = false,
+  hasActiveFilters = false,
   onPageChange,
   onStatusChange,
   onToggleStar,
   onOpenNotes,
   onSelectTag,
+  onClearFilters,
+  onAddQuestion,
   companyNames,
   tagSlugMap,
 }) => {
@@ -170,11 +176,31 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
             ) : problems.length === 0 ? (
               <tr>
                 <td colSpan={9} className="py-20 text-center text-text-subtle">
-                  <div className="max-w-xs mx-auto space-y-1.5">
+                  <div className="max-w-xs mx-auto space-y-3">
                     <p className="font-semibold text-text-muted text-sm">No problems found</p>
                     <p className="text-xs text-text-subtle">
-                      Try clearing filters, searching for a different keyword, or selecting another category.
+                      {hasActiveFilters
+                        ? 'No problems match the current filters.'
+                        : 'Get started by adding your first question.'}
                     </p>
+                    <div className="flex items-center justify-center gap-2 pt-1">
+                      {hasActiveFilters && onClearFilters && (
+                        <button
+                          onClick={onClearFilters}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-surface-hover transition cursor-pointer"
+                        >
+                          Clear all filters
+                        </button>
+                      )}
+                      {onAddQuestion && (
+                        <button
+                          onClick={onAddQuestion}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand text-brand-fg hover:bg-brand-hover transition cursor-pointer"
+                        >
+                          Add Question
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -202,7 +228,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                         onClick={() => onToggleStar(problem.id, problem.is_starred)}
                         aria-label={problem.is_starred ? `Unstar ${problem.title}` : `Star ${problem.title}`}
                         aria-pressed={problem.is_starred}
-                        className="text-text-subtle hover:text-amber-500 transition cursor-pointer"
+                        className="text-text-subtle hover:text-amber-500 transition cursor-pointer focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded"
                       >
                         <Star
                           className={`w-4 h-4 ${
@@ -234,6 +260,19 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                           <Badge variant="brand">Custom</Badge>
                         )}
                       </div>
+                      {/* Mobile-only inline tags */}
+                      {algoTags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1 lg:hidden">
+                          {algoTags.slice(0, 2).map((tag) => (
+                            <span key={tag} className="text-[11px] text-text-subtle bg-surface-hover px-1.5 py-0.5 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                          {algoTags.length > 2 && (
+                            <span className="text-[11px] text-text-subtle px-1 font-mono">+{algoTags.length - 2}</span>
+                          )}
+                        </div>
+                      )}
                     </td>
 
                     {/* Difficulty */}
@@ -297,7 +336,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                     <td className="py-2.5 px-4 text-center hidden md:table-cell">
                       <button
                         onClick={() => onOpenNotes(problem)}
-                        className={`p-1.5 rounded-lg border transition cursor-pointer ${
+                        className={`p-1.5 rounded-lg border transition cursor-pointer focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${
                           hasNotes
                             ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300'
                             : 'border-transparent text-text-subtle hover:text-text-main hover:bg-surface-hover'
@@ -318,7 +357,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                             target="_blank"
                             rel="noreferrer"
                             title="Open on LeetCode"
-                            className="p-1.5 rounded-lg text-text-subtle hover:text-brand hover:bg-surface-hover transition"
+                            className="p-1.5 rounded-lg text-text-subtle hover:text-brand hover:bg-surface-hover transition focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </a>
@@ -329,7 +368,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                             target="_blank"
                             rel="noreferrer"
                             title="Open in Doocs Wiki"
-                            className="text-xs font-semibold text-brand hover:text-brand-hover px-2.5 py-1 rounded-md bg-brand-subtle border border-brand/30 transition"
+                            className="text-xs font-semibold text-brand hover:text-brand-hover px-2.5 py-1 rounded-md bg-brand-subtle border border-brand/30 transition focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
                           >
                             Wiki
                           </a>
