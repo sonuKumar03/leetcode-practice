@@ -10,11 +10,13 @@ import { KeyboardShortcutsModal } from './components/modals/KeyboardShortcutsMod
 import { problemsApi } from './api/problemsApi';
 import { tagsApi } from './api/tagsApi';
 import { useToast } from './context/ToastContext';
+import { useAuth } from './context/AuthContext';
+import { LoginPage } from './components/auth/LoginPage';
 import { useDebounce } from './hooks/useDebounce';
 import { useUrlParams } from './hooks/useUrlParams';
 import type { Problem, Tag, Stats, Status, NewProblemPayload } from './types';
 
-export function App() {
+function MainTracker() {
   const mainRef = useRef<HTMLElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -473,4 +475,23 @@ export function App() {
   );
 }
 
+export function App() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return <MainTracker />;
+}
+
 export default App;
+

@@ -1,6 +1,12 @@
 export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'Unknown';
 export type Status = 'todo' | 'in_progress' | 'solved';
 
+export interface User {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
 export interface Problem {
   id: string;
   title: string;

@@ -15,6 +15,7 @@ import {
   ChevronDown,
   MoreHorizontal,
   FileText,
+  LogOut,
 } from 'lucide-react';
 import type { Stats } from '../../types';
 import { Button } from '../../design-system/components/Button';
@@ -22,6 +23,7 @@ import { SegmentedControl } from '../../design-system/components/SegmentedContro
 import type { SegmentOption } from '../../design-system/components/SegmentedControl';
 import { ProgressBar } from '../../design-system/components/ProgressBar';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface TopHeaderProps {
   stats: Stats | null;
@@ -120,7 +122,8 @@ const OverflowMenu: React.FC<{
   onOpenAddModal: () => void;
   onOpenBackupModal: () => void;
   onOpenShortcuts: () => void;
-}> = ({ theme, onToggleTheme, onOpenAddModal, onOpenBackupModal, onOpenShortcuts }) => {
+  onLogout: () => void;
+}> = ({ theme, onToggleTheme, onOpenAddModal, onOpenBackupModal, onOpenShortcuts, onLogout }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -138,6 +141,7 @@ const OverflowMenu: React.FC<{
     { icon: DownloadCloud, label: 'Backup & Import', action: onOpenBackupModal },
     { icon: Keyboard, label: 'Keyboard Shortcuts', action: onOpenShortcuts, hint: '?' },
     { icon: theme === 'dark' ? Moon : Sun, label: theme === 'dark' ? 'Light Mode' : 'Dark Mode', action: onToggleTheme },
+    { icon: LogOut, label: 'Sign Out', action: onLogout, danger: true },
   ];
 
   return (
@@ -157,7 +161,11 @@ const OverflowMenu: React.FC<{
             <button
               key={item.label}
               onClick={() => { item.action(); setOpen(false); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text-muted hover:text-text-main hover:bg-surface-hover transition cursor-pointer"
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition cursor-pointer ${
+                item.danger
+                  ? 'text-red-500 hover:bg-red-500/10 border-t border-border mt-1'
+                  : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
+              }`}
             >
               <item.icon className="w-4 h-4 flex-shrink-0" />
               <span className="flex-1 text-left">{item.label}</span>
@@ -200,6 +208,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   streak = 0,
 }) => {
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   const difficultyOptions: SegmentOption<string>[] = [
     { value: 'All', label: 'All' },
@@ -289,14 +298,38 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </div>
           )}
 
-          {/* Overflow Menu: Add Question, Backup, Shortcuts, Theme */}
+          {/* Overflow Menu: Add Question, Backup, Shortcuts, Theme, Logout */}
           <OverflowMenu
             theme={theme}
             onToggleTheme={toggleTheme}
             onOpenAddModal={onOpenAddModal}
             onOpenBackupModal={onOpenBackupModal}
             onOpenShortcuts={onOpenShortcuts}
+            onLogout={logout}
           />
+
+          {/* User Profile & Quick Logout Button */}
+          {user && (
+            <div className="flex items-center gap-2 pl-2 border-l border-border">
+              <div
+                className="w-7 h-7 rounded-full bg-brand/20 text-brand font-semibold text-xs flex items-center justify-center uppercase select-none border border-brand/30"
+                title={user.email}
+              >
+                {user.email.charAt(0)}
+              </div>
+              <span className="hidden xl:inline text-xs text-text-muted font-medium truncate max-w-[120px]" title={user.email}>
+                {user.email}
+              </span>
+              <button
+                onClick={logout}
+                className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition cursor-pointer"
+                title="Log out"
+                aria-label="Log out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
