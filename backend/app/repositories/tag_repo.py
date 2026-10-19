@@ -22,17 +22,30 @@ class TagRepository:
         return tag_id
 
     @staticmethod
-    def list_tags(conn: sqlite3.Connection, tag_type: Optional[str] = None) -> List[Dict[str, Any]]:
-        where_clause = ""
+    def list_tags(conn: sqlite3.Connection, tag_type: Optional[str] = None, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        where_clauses = []
         params = []
         if tag_type:
-            where_clause = "WHERE t.type = ?"
+            where_clauses.append("t.type = ?")
             params.append(tag_type)
 
+        joins = "LEFT JOIN problem_tags pt ON t.id = pt.tag_id"
+        count_expr = "COUNT(pt.problem_id)"
+
+        if status and status in ('todo', 'in_progress', 'solved'):
+            joins += " LEFT JOIN user_tracking ut ON pt.problem_id = ut.problem_id"
+            if status == 'todo':
+                count_expr = "COUNT(CASE WHEN ut.status IS NULL OR ut.status = 'todo' THEN 1 END)"
+            else:
+                count_expr = f"COUNT(CASE WHEN ut.status = ? THEN 1 END)"
+                params.append(status)
+
+        where_clause = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+
         query = f"""
-            SELECT t.id, t.name, t.slug, COALESCE(t.type, 'topic') as type, COUNT(pt.problem_id) as problem_count
+            SELECT t.id, t.name, t.slug, COALESCE(t.type, 'topic') as type, {count_expr} as problem_count
             FROM tags t
-            LEFT JOIN problem_tags pt ON t.id = pt.tag_id
+            {joins}
             {where_clause}
             GROUP BY t.id
             ORDER BY 

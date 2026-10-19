@@ -6,6 +6,7 @@ import {
   Search,
   CheckCircle2,
   Clock,
+  History,
 } from 'lucide-react';
 import type { Tag, Stats } from '../../types';
 import { Input } from '../../design-system/components/Input';
@@ -14,8 +15,8 @@ interface SidebarProps {
   tags: Tag[];
   selectedTag: string;
   onSelectTag: (tagSlug: string) => void;
-  activeView: 'all' | 'starred' | 'in_progress' | 'solved';
-  onSelectView: (view: 'all' | 'starred' | 'in_progress' | 'solved') => void;
+  activeView: 'all' | 'starred' | 'in_progress' | 'solved' | 'recent';
+  onSelectView: (view: 'all' | 'starred' | 'in_progress' | 'solved' | 'recent') => void;
   stats: Stats | null;
   isOpen: boolean;
   onClose: () => void;
@@ -66,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     >
       {/* Brand Header */}
       <div className="p-4 border-b border-border flex items-center space-x-3">
-        <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shadow-sm shadow-brand/20">
+        <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-brand-fg shadow-sm shadow-brand/20">
           <Code2 className="w-4 h-4" />
         </div>
         <div>
@@ -146,6 +147,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="text-xs px-2 py-0.5 rounded bg-surface-hover text-emerald-600 dark:text-emerald-400 font-bold font-mono">
             {stats?.solved_problems || 0}
           </span>
+        </button>
+
+        <button
+          onClick={() => { onClose(); onSelectView('recent'); }}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
+            activeView === 'recent'
+              ? 'bg-brand-subtle text-brand font-semibold border border-brand/30'
+              : 'text-text-muted hover:text-text-main hover:bg-surface-hover border border-transparent'
+          }`}
+        >
+          <div className="flex items-center space-x-2.5">
+            <History className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+            <span>Recent</span>
+          </div>
         </button>
       </div>
 

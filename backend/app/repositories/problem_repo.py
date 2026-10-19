@@ -166,7 +166,9 @@ class ProblemRepository:
             "title_desc": "p.title DESC",
             "difficulty_asc": "CASE p.difficulty WHEN 'Easy' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Hard' THEN 3 ELSE 4 END ASC",
             "difficulty_desc": "CASE p.difficulty WHEN 'Hard' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Easy' THEN 3 ELSE 4 END ASC",
+            "frequency_desc": "p.frequency DESC, CAST(p.id AS INTEGER) ASC",
             "status_asc": "COALESCE(ut.status, 'todo') ASC",
+            "recent": "ut.updated_at DESC NULLS LAST, CAST(p.id AS INTEGER) DESC",
         }
         order_by = order_map.get(sort_by, "CAST(p.id AS INTEGER) ASC, p.id ASC")
 
@@ -214,92 +216,144 @@ class ProblemRepository:
         return problems, total
 
     @staticmethod
-    def batch_upsert_enriched_problems(items: List[RawProblemItem], conn: Optional[sqlite3.Connection] = None) -> Dict[str, int]:
-        from app.repositories.tag_repo import slugify
+    def batch_upsert_enriched_problems(
+        items: List[RawProblemItem],
+        conn: Optional[sqlite3.Connection] = None,
+        source: str = "default",
+    ) -> Dict[str, int]:
+        """Idempotently merge adapter items into the DB.
+
+        Frequency is stored per (problem, source) and summed, so re-running the
+        same source replaces its contribution instead of adding to it. Only the
+        authoritative catalog source may overwrite title/difficulty. Items whose
+        slug is unknown and that carry no official ID are skipped rather than
+        given a made-up ID. Does not commit; the caller owns the transaction.
+        """
         from app.db.session import get_db_connection
 
         if conn is None:
             with get_db_connection() as c:
-                return ProblemRepository.batch_upsert_enriched_problems(items, conn=c)
+                return ProblemRepository.batch_upsert_enriched_problems(items, conn=c, source=source)
 
+        authoritative = source == AUTHORITATIVE_SOURCE
         cursor = conn.cursor()
         upserted_count = 0
         tags_linked = 0
+        skipped = 0
 
         for item in items:
-            # 1. Check if problem exists by slug or id
-            cursor.execute("SELECT id, frequency FROM problems WHERE slug = ?", (item.slug,))
+            difficulty = _normalize_difficulty(item.difficulty)
+            cursor.execute("SELECT id, difficulty FROM problems WHERE slug = ?", (item.slug,))
             row = cursor.fetchone()
-            prob_id = item.leetcode_id
 
             if row:
-                prob_id = row["id"] if hasattr(row, "keys") else row[0]
-                freq = row["frequency"] if hasattr(row, "keys") else row[1]
-                new_freq = (freq or 0) + item.frequency_delta
-                cursor.execute("""
+                prob_id = row[0]
+                cursor.execute(
+                    """
                     UPDATE problems
-                    SET title = COALESCE(?, title),
-                        difficulty = COALESCE(?, difficulty),
-                        frequency = ?
-                    WHERE slug = ?
-                """, (item.title, item.difficulty, new_freq, item.slug))
+                    SET title = CASE WHEN ? AND ? IS NOT NULL AND ? != '' THEN ? ELSE title END,
+                        difficulty = CASE
+                            WHEN ? IS NOT NULL AND (? OR difficulty = 'Unknown') THEN ?
+                            ELSE difficulty END,
+                        paid_only = MAX(paid_only, ?),
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (
+                        authoritative, item.title, item.title, item.title,
+                        difficulty, authoritative, difficulty,
+                        1 if item.paid_only else 0,
+                        prob_id,
+                    ),
+                )
             else:
+                prob_id = (item.leetcode_id or "").strip()
                 if not prob_id:
-                    cursor.execute("SELECT MAX(CAST(id AS INTEGER)) as max_id FROM problems")
-                    max_row = cursor.fetchone()
-                    max_id = (max_row["max_id"] if hasattr(max_row, "keys") else max_row[0]) if max_row else None
-                    next_id = (max_id or 10000) + 1
-                    prob_id = str(next_id)
+                    skipped += 1
+                    continue
+                if cursor.execute("SELECT 1 FROM problems WHERE id = ?", (prob_id,)).fetchone():
+                    # ID already belongs to a different slug; never overwrite it.
+                    skipped += 1
+                    continue
+                cursor.execute(
+                    """
+                    INSERT INTO problems (id, title, slug, difficulty, paid_only, leetcode_url, source)
+                    VALUES (?, ?, ?, ?, ?, ?, 'sync')
+                    """,
+                    (
+                        prob_id,
+                        item.title or item.slug.replace("-", " ").title(),
+                        item.slug,
+                        difficulty or "Unknown",
+                        1 if item.paid_only else 0,
+                        f"https://leetcode.com/problems/{item.slug}/",
+                    ),
+                )
 
-                lc_url = f"https://leetcode.com/problems/{item.slug}/"
-                cursor.execute("""
-                    INSERT INTO problems (id, title, slug, difficulty, paid_only, leetcode_url, frequency)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    prob_id,
-                    item.title or item.slug.replace("-", " ").title(),
-                    item.slug,
-                    item.difficulty or "Medium",
-                    1 if item.paid_only else 0,
-                    lc_url,
-                    item.frequency_delta
-                ))
+            cursor.execute(
+                """
+                INSERT INTO problem_source_freq (problem_id, source, frequency)
+                VALUES (?, ?, ?)
+                ON CONFLICT(problem_id, source) DO UPDATE SET frequency = excluded.frequency
+                """,
+                (prob_id, source, item.frequency_delta),
+            )
+            cursor.execute(
+                """
+                UPDATE problems
+                SET frequency = (SELECT COALESCE(SUM(frequency), 0) FROM problem_source_freq WHERE problem_id = ?)
+                WHERE id = ?
+                """,
+                (prob_id, prob_id),
+            )
             upserted_count += 1
 
-            # 2. Upsert and link tags: topics, companies, curated_lists
             tag_mappings = (
-                [(t, "topic") for t in item.topics] +
-                [(c, "company") for c in item.companies] +
-                [(l, "list") for l in item.curated_lists]
+                [(t, "topic") for t in item.topics]
+                + [(c, "company") for c in item.companies]
+                + [(l, "list") for l in item.curated_lists]
             )
-
             for tag_name, tag_type in tag_mappings:
                 if not tag_name or not tag_name.strip():
                     continue
-                tag_name = tag_name.strip()
-                tag_slug = slugify(tag_name)
-
-                cursor.execute("SELECT id FROM tags WHERE slug = ? AND type = ?", (tag_slug, tag_type))
-                tag_row = cursor.fetchone()
-                if not tag_row:
-                    cursor.execute("SELECT id FROM tags WHERE slug = ?", (tag_slug,))
-                    tag_row = cursor.fetchone()
-
-                if tag_row:
-                    tag_id = tag_row["id"] if hasattr(tag_row, "keys") else tag_row[0]
-                else:
-                    cursor.execute(
-                        "INSERT INTO tags (name, slug, type) VALUES (?, ?, ?)",
-                        (tag_name, tag_slug, tag_type)
-                    )
-                    tag_id = cursor.lastrowid
-
+                tag_id = _get_or_create_typed_tag(cursor, tag_name.strip(), tag_type)
                 cursor.execute(
                     "INSERT OR IGNORE INTO problem_tags (problem_id, tag_id) VALUES (?, ?)",
-                    (prob_id, tag_id)
+                    (prob_id, tag_id),
                 )
                 tags_linked += 1
 
-        conn.commit()
-        return {"upserted_problems": upserted_count, "tags_linked": tags_linked}
+        return {"upserted_problems": upserted_count, "tags_linked": tags_linked, "skipped_unknown_id": skipped}
 
+
+AUTHORITATIVE_SOURCE = "leetcode_catalog"
+_VALID_DIFFICULTIES = {"easy": "Easy", "medium": "Medium", "hard": "Hard"}
+
+
+def _normalize_difficulty(value: Optional[str]) -> Optional[str]:
+    return _VALID_DIFFICULTIES.get((value or "").strip().lower())
+
+
+def _get_or_create_typed_tag(cursor: sqlite3.Cursor, name: str, tag_type: str) -> int:
+    """Find/create a tag of the given type, matching existing tags by slug or name.
+
+    Slugs (and, in older databases, names) are globally unique, so a name that
+    collides with a tag of another type gets a type-prefixed slug and, if needed,
+    a "(type)" name suffix instead of being merged into that tag."""
+    base_slug = slugify(name)
+    rows = cursor.execute(
+        "SELECT id, type, slug, name FROM tags WHERE slug = ? OR LOWER(name) = LOWER(?)",
+        (base_slug, name),
+    ).fetchall()
+    for r in rows:
+        if r[1] == tag_type:
+            return r[0]
+
+    slug = base_slug
+    if any(r[2] == slug for r in rows):
+        slug = f"{tag_type}-{base_slug}"
+    tag_name = name
+    if any(r[3].lower() == name.lower() for r in rows):
+        tag_name = f"{name} ({tag_type})"
+    cursor.execute("INSERT INTO tags (name, slug, type) VALUES (?, ?, ?)", (tag_name, slug, tag_type))
+    return cursor.lastrowid

@@ -15,6 +15,18 @@ class TrackingOut(BaseModel):
     notes: str = ""
     updated_at: Optional[str] = None
 
+class BatchTrackingItem(BaseModel):
+    id: str
+    status: Optional[StatusType] = None
+    is_starred: Optional[bool] = None
+    notes: Optional[str] = None
+
+class BatchTrackingRequest(BaseModel):
+    items: list[BatchTrackingItem]
+
+class BatchTrackingOut(BaseModel):
+    updated: int
+
 class StatsOut(BaseModel):
     total_problems: int
     solved_problems: int

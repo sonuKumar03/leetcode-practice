@@ -17,15 +17,33 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   onClose,
   onSaveNotes,
 }) => {
-  useEscapeKey(isOpen, onClose);
   const containerRef = useRef<HTMLDivElement>(null);
   useFocusTrap(containerRef, isOpen);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+
+  const isDirty = problem ? notes !== (problem.notes || '') : false;
+
+  const handleClose = () => {
+    if (isDirty) {
+      setShowDiscardConfirm(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleDiscard = () => {
+    setShowDiscardConfirm(false);
+    onClose();
+  };
+
+  useEscapeKey(isOpen, handleClose);
 
   useEffect(() => {
     if (problem) {
       setNotes(problem.notes || '');
+      setShowDiscardConfirm(false);
     }
   }, [problem]);
 
@@ -45,7 +63,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div ref={containerRef} className="bg-elevated border border-border rounded-2xl w-full max-w-xl p-6 shadow-2xl relative flex flex-col max-h-[90vh] text-text-main transition-colors">
         <button
-          onClick={onClose}
+          onClick={handleClose}
           aria-label="Close"
           className="absolute right-4 top-4 text-text-subtle hover:text-text-main p-1 rounded-lg transition-colors cursor-pointer"
         >
@@ -97,12 +115,33 @@ export const NotesModal: React.FC<NotesModalProps> = ({
           />
         </div>
 
+        {/* Discard confirmation */}
+        {showDiscardConfirm && (
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-sm mb-3">
+            <span className="text-amber-700 dark:text-amber-300 font-medium">You have unsaved changes.</span>
+            <div className="flex gap-2 flex-shrink-0">
+              <button
+                onClick={() => setShowDiscardConfirm(false)}
+                className="px-3 py-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover font-medium transition cursor-pointer"
+              >
+                Keep editing
+              </button>
+              <button
+                onClick={handleDiscard}
+                className="px-3 py-1 rounded-lg bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 font-semibold hover:bg-red-500/25 transition cursor-pointer"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex justify-between items-center pt-3 border-t border-border text-sm">
-          <span className="text-text-subtle">Saved directly to SQLite database</span>
+          <span className="text-text-subtle">{isDirty ? 'Unsaved changes' : 'Saved directly to SQLite database'}</span>
           <div className="flex space-x-2">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 rounded-xl font-medium text-text-muted hover:text-text-main hover:bg-surface-hover transition cursor-pointer"
             >
               Cancel
@@ -110,7 +149,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-white bg-brand hover:bg-brand-hover active:scale-95 shadow-md shadow-brand/20 transition disabled:opacity-50 cursor-pointer"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl font-semibold text-brand-fg bg-brand hover:bg-brand-hover active:scale-95 shadow-md shadow-brand/20 transition disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving...' : 'Save Notes'}</span>

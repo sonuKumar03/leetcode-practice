@@ -63,4 +63,13 @@ export const problemsApi = {
       body: JSON.stringify(data),
     });
   },
+
+  batchUpdateTracking: (
+    items: Array<{ id: string; status?: Status; is_starred?: boolean; notes?: string }>
+  ): Promise<{ updated: number }> => {
+    return apiRequest('/api/v1/problems/tracking/batch', {
+      method: 'PUT',
+      body: JSON.stringify({ items }),
+    });
+  },
 };

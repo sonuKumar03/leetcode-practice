@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.db.session import get_db_connection
-from app.models.tracking import TrackingUpdate, TrackingOut
+from app.models.tracking import TrackingUpdate, TrackingOut, BatchTrackingRequest, BatchTrackingOut
 from app.repositories.tracking_repo import TrackingRepository
 from app.repositories.problem_repo import ProblemRepository
 
@@ -28,3 +28,20 @@ def update_problem_tracking(problem_id: str, payload: TrackingUpdate):
             notes=updated["notes"] or "",
             updated_at=str(updated["updated_at"]) if updated["updated_at"] else None,
         )
+
+
+@router.put("/tracking/batch", response_model=BatchTrackingOut)
+def batch_update_tracking(payload: BatchTrackingRequest):
+    """Batch update tracking for multiple problems in a single transaction."""
+    with get_db_connection() as conn:
+        count = 0
+        for item in payload.items:
+            TrackingRepository.upsert_tracking(
+                conn=conn,
+                problem_id=item.id,
+                status=item.status,
+                is_starred=item.is_starred,
+                notes=item.notes,
+            )
+            count += 1
+        return BatchTrackingOut(updated=count)

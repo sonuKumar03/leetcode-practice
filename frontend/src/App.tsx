@@ -8,12 +8,15 @@ import { ExportImportModal } from './components/modals/ExportImportModal';
 import { problemsApi } from './api/problemsApi';
 import { tagsApi } from './api/tagsApi';
 import { useToast } from './context/ToastContext';
+import { useDebounce } from './hooks/useDebounce';
+import { useUrlParams } from './hooks/useUrlParams';
 import type { Problem, Tag, Stats, Status, NewProblemPayload } from './types';
 
 export function App() {
   const mainRef = useRef<HTMLElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const url = useUrlParams();
 
   // Main data state
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -23,18 +26,43 @@ export function App() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Mutually exclusive view or category
-  const [activeView, setActiveView] = useState<'all' | 'starred' | 'in_progress' | 'solved'>('all');
-  const [selectedTag, setSelectedTag] = useState<string>('');
+  // Mutually exclusive view or category — initialized from URL
+  const validViews = ['all', 'starred', 'in_progress', 'solved', 'recent'] as const;
+  const urlView = url.get('view', 'all');
+  const [activeView, setActiveView] = useState<'all' | 'starred' | 'in_progress' | 'solved' | 'recent'>(
+    (validViews as readonly string[]).includes(urlView) ? urlView as typeof validViews[number] : 'all'
+  );
+  const [selectedTag, setSelectedTag] = useState<string>(url.get('tag'));
 
-  // Top header filters
-  const [search, setSearch] = useState('');
-  const [difficulty, setDifficulty] = useState('All');
-  const [status, setStatus] = useState('All');
-  const [isStarred, setIsStarred] = useState(false);
-  const [paidOnly, setPaidOnly] = useState<boolean | undefined>(undefined);
-  const [sortBy, setSortBy] = useState('id_asc');
-  const [page, setPage] = useState(1);
+  // Top header filters — initialized from URL
+  const [search, setSearch] = useState(url.get('q'));
+  const [difficulty, setDifficulty] = useState(url.get('difficulty', 'All'));
+  const [status, setStatus] = useState(url.get('status', 'All'));
+  const [isStarred, setIsStarred] = useState(url.getBool('starred') === true);
+  const [paidOnly, setPaidOnly] = useState<boolean | undefined>(url.getBool('paid'));
+  const [sortBy, setSortBy] = useState(() => {
+    const fromUrl = url.get('sort');
+    if (fromUrl) return fromUrl;
+    try { return localStorage.getItem('leettracker_sort') || 'id_asc'; } catch { return 'id_asc'; }
+  });
+  const [page, setPage] = useState(url.getInt('page', 1));
+
+  const debouncedSearch = useDebounce(search, 300);
+
+  // Sync filter state to URL
+  useEffect(() => {
+    url.sync({
+      q: search || undefined,
+      difficulty: difficulty === 'All' ? undefined : difficulty,
+      status: status === 'All' ? undefined : status,
+      starred: isStarred ? 'true' : undefined,
+      paid: paidOnly === true ? 'true' : paidOnly === false ? 'false' : undefined,
+      sort: sortBy === 'id_asc' ? undefined : sortBy,
+      page: page === 1 ? undefined : String(page),
+      tag: selectedTag || undefined,
+      view: activeView === 'all' ? undefined : activeView,
+    });
+  }, [search, difficulty, status, isStarred, paidOnly, sortBy, page, selectedTag, activeView, url]);
 
   // Modals state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -55,17 +83,21 @@ export function App() {
   // Compute effective query filters from activeView and local toggles
   const effectiveStatus = activeView === 'solved' ? 'solved' : activeView === 'in_progress' ? 'in_progress' : status;
   const effectiveStarred = activeView === 'starred' ? true : isStarred;
+  const effectiveSort = activeView === 'recent' ? 'recent' : sortBy;
 
-  // Load canonical tags (cached, only on mount or updates)
+  // Derive the status filter for context-aware tag counts
+  const tagStatusFilter = activeView === 'solved' ? 'solved' : activeView === 'in_progress' ? 'in_progress' : undefined;
+
+  // Load canonical tags (re-fetches when view changes to update counts)
   const loadTags = useCallback(async () => {
     try {
-      const fetchedTags = await tagsApi.getTags();
+      const fetchedTags = await tagsApi.getTags(tagStatusFilter);
       setTags(fetchedTags);
     } catch (err) {
       console.error('Failed to load tags:', err);
       toast({ type: 'error', message: 'Failed to load tags' });
     }
-  }, [toast]);
+  }, [toast, tagStatusFilter]);
 
   // Load stats (updates when selectedTag changes)
   const loadStats = useCallback(async () => {
@@ -83,12 +115,12 @@ export function App() {
       setLoading(true);
       const res = await problemsApi.getProblems({
         tag: selectedTag || undefined,
-        search: search.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         difficulty,
         status: effectiveStatus,
         is_starred: effectiveStarred || undefined,
         paid_only: paidOnly,
-        sort_by: sortBy,
+        sort_by: effectiveSort,
         page,
         page_size: 50,
       });
@@ -101,7 +133,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedTag, search, difficulty, effectiveStatus, effectiveStarred, paidOnly, sortBy, page, toast]);
+  }, [selectedTag, debouncedSearch, difficulty, effectiveStatus, effectiveStarred, paidOnly, effectiveSort, page, toast]);
 
   useEffect(() => {
     loadTags();
@@ -115,20 +147,49 @@ export function App() {
     loadProblems();
   }, [loadProblems]);
 
-  // Keyboard shortcut: `/` to focus search
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
+      const tag = (e.target as HTMLElement)?.tagName;
+      const inInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
+
+      // Escape: blur search input
+      if (e.key === 'Escape' && inInput) {
+        (e.target as HTMLElement).blur();
+        return;
+      }
+
+      if (inInput) return;
+
+      switch (e.key) {
+        case '/':
+          e.preventDefault();
+          searchInputRef.current?.focus();
+          break;
+        case 'n':
+          e.preventDefault();
+          setIsAddModalOpen(true);
+          break;
+        case 'j':
+          if (page < totalPages) {
+            setPage((p) => p + 1);
+            mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+          }
+          break;
+        case 'k':
+          if (page > 1) {
+            setPage((p) => p - 1);
+            mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+          }
+          break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [page, totalPages]);
 
   // Navigation Handlers with smooth scroll reset
-  const handleSelectView = (view: 'all' | 'starred' | 'in_progress' | 'solved') => {
+  const handleSelectView = (view: 'all' | 'starred' | 'in_progress' | 'solved' | 'recent') => {
     setActiveView(view);
     setSelectedTag('');
     setPage(1);
@@ -242,13 +303,7 @@ export function App() {
   const handleImportTracking = async (
     items: Array<{ id: string; status: any; is_starred: boolean; notes: string }>
   ) => {
-    for (const item of items) {
-      await problemsApi.updateTracking(item.id, {
-        status: item.status,
-        is_starred: item.is_starred,
-        notes: item.notes,
-      });
-    }
+    await problemsApi.batchUpdateTracking(items);
     await Promise.all([loadTags(), loadStats(), loadProblems()]);
   };
 
@@ -308,7 +363,10 @@ export function App() {
           paidOnly={paidOnly}
           onPaidToggle={handlePaidToggle}
           sortBy={sortBy}
-          onSortChange={setSortBy}
+          onSortChange={(val) => {
+            setSortBy(val);
+            try { localStorage.setItem('leettracker_sort', val); } catch {}
+          }}
           onOpenAddModal={() => setIsAddModalOpen(true)}
           onOpenBackupModal={() => setIsBackupModalOpen(true)}
           onOpenSidebar={() => setIsSidebarOpen(true)}
@@ -323,6 +381,7 @@ export function App() {
             page={page}
             totalPages={totalPages}
             loading={loading}
+            hasActiveFilters={!!(search || difficulty !== 'All' || status !== 'All' || isStarred || paidOnly !== undefined || selectedTag)}
             onPageChange={(newPage) => {
               setPage(newPage);
               mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
@@ -331,6 +390,17 @@ export function App() {
             onToggleStar={handleToggleStar}
             onOpenNotes={(prob) => setActiveNotesProblem(prob)}
             onSelectTag={handleSelectTag}
+            onClearFilters={() => {
+              setSearch('');
+              setDifficulty('All');
+              setStatus('All');
+              setIsStarred(false);
+              setPaidOnly(undefined);
+              setSelectedTag('');
+              setActiveView('all');
+              setPage(1);
+            }}
+            onAddQuestion={() => setIsAddModalOpen(true)}
             companyNames={companyNames}
             tagSlugMap={tagSlugMap}
           />
