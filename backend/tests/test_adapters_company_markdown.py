@@ -63,7 +63,7 @@ class TestAdaptersCompanyMarkdown(unittest.TestCase):
         self.assertEqual(items[1].difficulty, "Medium")
 
     @patch("requests.get")
-    def test_markdown_adapter_raw_urls_fallback(self, mock_get):
+    def test_markdown_adapter_ignores_prose_links(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
         mock_resp.text = """
@@ -73,8 +73,14 @@ Some random notes with a link: https://leetcode.com/problems/invert-binary-tree/
 
         adapter = GitHubMarkdownAdapter(urls=["https://raw.githubusercontent.com/test/repo/README.md"])
         items = list(adapter.fetch())
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0].slug, "invert-binary-tree")
+        # Stray prose links are ignored: only table rows count, otherwise frequency is inflated
+        self.assertEqual(items, [])
+
+    @patch("requests.get")
+    def test_markdown_adapter_raises_when_all_sources_fail(self, mock_get):
+        mock_get.return_value = MagicMock(status_code=500)
+        with self.assertRaises(RuntimeError):
+            list(GitHubMarkdownAdapter(urls=["https://example.com/a.md"]).fetch())
 
     def test_adapters_are_registered_in_registry(self):
         registered = [m["name"] for m in AdapterRegistry.list_metadata()]

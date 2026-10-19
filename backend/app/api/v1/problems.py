@@ -1,21 +1,37 @@
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+
 from app.db.session import get_db_connection
-from app.models.problem import ProblemCreate, ProblemOut, ProblemListResponse, MetadataLookupOut
+from app.models.problem import (
+    MetadataLookupOut,
+    ProblemCreate,
+    ProblemListResponse,
+    ProblemOut,
+)
 from app.repositories.problem_repo import ProblemRepository
 from app.services.metadata_service import MetadataService
+from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
+
 @router.get("", response_model=ProblemListResponse)
 def get_problems(
-    tag: Optional[str] = Query(None, description="Tag slug or name (e.g. k-shortest-paths)"),
+    tag: Optional[str] = Query(
+        None, description="Tag slug or name (e.g. k-shortest-paths)"
+    ),
     difficulty: Optional[str] = Query(None, description="Easy, Medium, Hard, or All"),
-    status: Optional[str] = Query(None, description="todo, in_progress, solved, or All"),
+    status: Optional[str] = Query(
+        None, description="todo, in_progress, solved, or All"
+    ),
     search: Optional[str] = Query(None, description="Search by ID or Title"),
-    is_starred: Optional[bool] = Query(None, description="Filter only starred/bookmarked"),
+    is_starred: Optional[bool] = Query(
+        None, description="Filter only starred/bookmarked"
+    ),
     paid_only: Optional[bool] = Query(None, description="Filter premium questions"),
-    sort_by: str = Query("id_asc", description="id_asc, id_desc, title_asc, difficulty_asc, difficulty_desc"),
+    sort_by: str = Query(
+        "id_asc",
+        description="id_asc, id_desc, title_asc, title_desc, difficulty_asc, difficulty_desc, frequency_desc, status_asc",
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
 ):
@@ -41,13 +57,17 @@ def get_problems(
             total_pages=total_pages,
         )
 
+
 @router.get("/lookup", response_model=MetadataLookupOut)
-def lookup_metadata(query: str = Query(..., description="Problem ID, Title slug, or LeetCode URL")):
+def lookup_metadata(
+    query: str = Query(..., description="Problem ID, Title slug, or LeetCode URL"),
+):
     """Auto-fill metadata (title, difficulty, url, algorithm tags, company tags) for a problem."""
     result = MetadataService.lookup_metadata(query)
     if not result:
         raise HTTPException(status_code=404, detail="No metadata found for query")
     return MetadataLookupOut(**result)
+
 
 @router.get("/{problem_id}", response_model=ProblemOut)
 def get_problem(problem_id: str):
@@ -56,6 +76,7 @@ def get_problem(problem_id: str):
         if not problem:
             raise HTTPException(status_code=404, detail="Problem not found")
         return ProblemOut(**problem)
+
 
 @router.post("", response_model=ProblemOut, status_code=201)
 def add_problem(payload: ProblemCreate):

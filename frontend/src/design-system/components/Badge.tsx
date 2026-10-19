@@ -29,12 +29,12 @@ export const Badge: React.FC<BadgeProps> = ({
   const variantStyles: Record<BadgeVariant, string> = {
     default: 'bg-surface-hover text-text-muted border-border',
     brand: 'bg-brand-subtle text-brand border-brand/30 font-semibold',
-    easy: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-bold',
-    medium: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 font-bold',
-    hard: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30 font-bold',
+    easy: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 font-bold',
+    medium: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 font-bold',
+    hard: 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 font-bold',
     todo: 'bg-surface-hover text-text-muted border-border font-semibold',
-    inProgress: 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30 font-semibold',
-    solved: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 font-semibold',
+    inProgress: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 font-semibold',
+    solved: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 font-semibold',
     tag: 'bg-surface-hover text-text-muted border-border hover:text-text-main hover:bg-surface-active',
   };
 

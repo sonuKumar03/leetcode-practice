@@ -13,6 +13,7 @@ class ProblemBase(BaseModel):
     leetcode_url: Optional[str] = None
     doocs_url: Optional[str] = None
     source: str = "doocs"
+    frequency: int = 0
 
 class ProblemCreate(BaseModel):
     id: str = Field(..., description="Problem ID or number (e.g. 2045 or custom-1)")

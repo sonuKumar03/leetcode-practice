@@ -28,17 +28,19 @@ class GitHubMarkdownAdapter(BaseSourceAdapter):
         self.urls = urls or DEFAULT_MARKDOWN_URLS
 
     def fetch(self) -> Iterable[RawProblemItem]:
+        failed = 0
         for url in self.urls:
             logger.info(f"Scanning Markdown from {url}...")
             try:
                 resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
                 if resp.status_code != 200:
+                    failed += 1
                     continue
 
                 for line in resp.text.splitlines():
                     row_match = ROW_REGEX.search(line)
                     if row_match:
-                        prob_id = row_match.group(1)
+                        prob_id = row_match.group(1) or None
                         title = row_match.group(2)
                         link = row_match.group(3)
                         diff = row_match.group(4).capitalize()
@@ -52,10 +54,10 @@ class GitHubMarkdownAdapter(BaseSourceAdapter):
                                 difficulty=diff,
                                 frequency_delta=1
                             )
-                    else:
-                        for slug_match in URL_REGEX.finditer(line):
-                            slug = slug_match.group(1).lower()
-                            yield RawProblemItem(slug=slug, frequency_delta=1)
             except Exception as e:
+                failed += 1
                 logger.warning(f"Error scanning markdown source {url}: {e}")
+
+        if self.urls and failed == len(self.urls):
+            raise RuntimeError(f"All {failed} markdown sources failed")
 

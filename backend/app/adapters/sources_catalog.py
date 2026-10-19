@@ -18,17 +18,14 @@ class LeetCodeOfficialCatalogAdapter(BaseSourceAdapter):
 
     def fetch(self) -> Iterable[RawProblemItem]:
         logger.info(f"Fetching LeetCode catalog from {self.api_url}...")
-        try:
-            resp = requests.get(
-                self.api_url,
-                headers={"User-Agent": "Mozilla/5.0"},
-                timeout=15
-            )
-            resp.raise_for_status()
-            data = resp.json()
-        except Exception as e:
-            logger.error(f"Catalog fetch failed: {e}")
-            return
+        # Failures propagate so the sync pipeline reports them instead of "succeeding" empty.
+        resp = requests.get(
+            self.api_url,
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=15
+        )
+        resp.raise_for_status()
+        data = resp.json()
 
         diff_map = {1: "Easy", 2: "Medium", 3: "Hard"}
         for item in data.get("stat_status_pairs", []):
@@ -37,7 +34,7 @@ class LeetCodeOfficialCatalogAdapter(BaseSourceAdapter):
             if not slug:
                 continue
 
-            fid = str(stat.get("frontend_question_id", ""))
+            fid = str(stat.get("frontend_question_id") or "") or None
             title = stat.get("question__title", "")
             level = item.get("difficulty", {}).get("level", 2)
             paid_only = bool(item.get("paid_only", False))

@@ -4,29 +4,46 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from contextlib import asynccontextmanager
+from fastapi import HTTPException
 from app.api.router import api_router
+from app.api.sources import router as sources_router
 from app.db.session import init_db
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init_db()
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="LeetCode Practice Tracker API",
     description="Modular API for scraping and tracking LeetCode problems with SQLite",
     version="1.0.0",
 )
 
-# Enable CORS for frontend development
+# CORS: only the Vite dev origins by default (production serves the SPA same-origin).
+# Override with a comma-separated CORS_ORIGINS env var.
+CORS_ORIGINS = [
+    o.strip()
+    for o in os.environ.get(
+        "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173"
+    ).split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(api_router)
+app.include_router(sources_router, prefix="/api/v1")
 
-@app.on_event("startup")
-def on_startup():
-    init_db()
 
 @app.get("/health")
 def health_check():
@@ -47,7 +64,7 @@ if os.path.exists(FRONTEND_DIST):
     async def serve_spa(full_path: str):
         # Don't intercept API or docs routes
         if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
-            return None
+            raise HTTPException(status_code=404, detail="Not found")
         file_path = os.path.join(FRONTEND_DIST, full_path)
         if full_path and os.path.isfile(file_path):
             return FileResponse(file_path)

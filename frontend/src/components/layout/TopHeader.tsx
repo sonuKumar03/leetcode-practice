@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -9,6 +9,11 @@ import {
   Sun,
   Moon,
   Menu,
+  Flame,
+  Keyboard,
+  Check,
+  ChevronDown,
+  MoreHorizontal,
 } from 'lucide-react';
 import type { Stats } from '../../types';
 import { Button } from '../../design-system/components/Button';
@@ -37,8 +42,135 @@ interface TopHeaderProps {
   onOpenAddModal: () => void;
   onOpenBackupModal: () => void;
   onOpenSidebar: () => void;
+  onOpenShortcuts: () => void;
   searchInputRef?: React.Ref<HTMLInputElement>;
+  streak?: number;
 }
+
+const sortOptions = [
+  { value: 'frequency_desc', label: 'Frequency (High → Low)' },
+  { value: 'frequency_asc', label: 'Frequency (Low → High)' },
+  { value: 'id_asc', label: 'ID (1 → N)' },
+  { value: 'id_desc', label: 'ID (N → 1)' },
+  { value: 'difficulty_asc', label: 'Difficulty (Easy → Hard)' },
+  { value: 'difficulty_desc', label: 'Difficulty (Hard → Easy)' },
+  { value: 'status_asc', label: 'Status (To Do → Solved)' },
+  { value: 'status_desc', label: 'Status (Solved → To Do)' },
+  { value: 'title_asc', label: 'Title (A → Z)' },
+];
+
+const SortDropdown: React.FC<{ value: string; onChange: (val: string) => void }> = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  const activeLabel = sortOptions.find((o) => o.value === value)?.label || value;
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 bg-surface border border-border rounded-xl px-2.5 py-1.5 text-sm text-text-main min-w-[220px] hover:bg-surface-hover transition cursor-pointer"
+        aria-label="Sort questions"
+        aria-expanded={open}
+      >
+        <SlidersHorizontal className="w-3.5 h-3.5 text-text-subtle" />
+        <span className="flex-1 text-left truncate">{activeLabel}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-text-subtle transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-64 bg-elevated border border-border rounded-xl shadow-xl py-1 animate-fade-in">
+          {sortOptions.map((opt) => {
+            const isActive = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition cursor-pointer ${
+                  isActive
+                    ? 'text-brand font-semibold bg-brand-subtle'
+                    : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
+                }`}
+              >
+                <Check className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-brand' : 'invisible'}`} />
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const OverflowMenu: React.FC<{
+  theme: string;
+  onToggleTheme: () => void;
+  onOpenAddModal: () => void;
+  onOpenBackupModal: () => void;
+  onOpenShortcuts: () => void;
+}> = ({ theme, onToggleTheme, onOpenAddModal, onOpenBackupModal, onOpenShortcuts }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  const items = [
+    { icon: Plus, label: 'Add Question', action: onOpenAddModal },
+    { icon: DownloadCloud, label: 'Backup & Import', action: onOpenBackupModal },
+    { icon: Keyboard, label: 'Keyboard Shortcuts', action: onOpenShortcuts, hint: '?' },
+    { icon: theme === 'dark' ? Moon : Sun, label: theme === 'dark' ? 'Light Mode' : 'Dark Mode', action: onToggleTheme },
+  ];
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border bg-surface text-text-muted hover:text-text-main hover:bg-surface-hover transition cursor-pointer"
+        aria-label="More actions"
+        aria-expanded={open}
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-56 bg-elevated border border-border rounded-xl shadow-xl py-1 animate-fade-in">
+          {items.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => { item.action(); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text-muted hover:text-text-main hover:bg-surface-hover transition cursor-pointer"
+            >
+              <item.icon className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.hint && (
+                <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-active border border-border text-text-subtle">
+                  {item.hint}
+                </kbd>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
   stats,
@@ -59,10 +191,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenAddModal,
   onOpenBackupModal,
   onOpenSidebar,
+  onOpenShortcuts,
   searchInputRef,
+  streak = 0,
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const themeLabel = theme === 'dark' ? 'Dark' : 'Light';
 
   const difficultyOptions: SegmentOption<string>[] = [
     { value: 'All', label: 'All' },
@@ -138,44 +271,26 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </>
           )}
 
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<Plus className="w-3.5 h-3.5" />}
-            onClick={onOpenAddModal}
-            aria-label="Add question"
-          >
-            <span className="hidden sm:inline">Add Question</span>
-          </Button>
+          {/* Streak Counter */}
+          {streak > 0 && (
+            <div
+              className="hidden sm:flex items-center gap-1.5 bg-surface border border-border rounded-xl px-2.5 py-1.5 text-sm"
+              title={`${streak}-day streak! Keep it up!`}
+            >
+              <Flame className="w-4 h-4 text-orange-500" />
+              <span className="font-bold text-orange-600 dark:text-orange-400 font-mono">{streak}</span>
+              <span className="text-text-subtle text-xs hidden md:inline">day streak</span>
+            </div>
+          )}
 
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<DownloadCloud className="w-3.5 h-3.5" />}
-            onClick={onOpenBackupModal}
-            aria-label="Backup"
-          >
-            <span className="hidden sm:inline">Backup</span>
-          </Button>
-
-          {/* Theme Toggle Button: dark <-> light */}
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={
-              theme === 'dark' ? (
-                <Moon className="w-3.5 h-3.5 text-brand" />
-              ) : (
-                <Sun className="w-3.5 h-3.5 text-amber-500" />
-              )
-            }
-            onClick={toggleTheme}
-            title={`Theme: ${themeLabel} (click to toggle)`}
-            aria-label={`Theme: ${themeLabel}. Click to toggle`}
-            className="md:w-[84px]"
-          >
-            <span className="hidden md:inline">{themeLabel}</span>
-          </Button>
+          {/* Overflow Menu: Add Question, Backup, Shortcuts, Theme */}
+          <OverflowMenu
+            theme={theme}
+            onToggleTheme={toggleTheme}
+            onOpenAddModal={onOpenAddModal}
+            onOpenBackupModal={onOpenBackupModal}
+            onOpenShortcuts={onOpenShortcuts}
+          />
         </div>
       </div>
 
@@ -237,22 +352,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </Button>
 
           {/* Sort Menu */}
-          <div className="flex items-center flex-shrink-0 bg-surface border border-border rounded-xl px-2.5 py-1.5 text-sm text-text-main">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-text-subtle mr-1.5" />
-            <select
-              aria-label="Sort questions"
-              value={sortBy}
-              onChange={(e) => onSortChange(e.target.value)}
-              className="bg-transparent text-text-main text-sm focus:outline-none cursor-pointer"
-            >
-              <option value="frequency_desc" className="bg-surface text-text-main">Frequency (High → Low)</option>
-              <option value="id_asc" className="bg-surface text-text-main">ID (1 → N)</option>
-              <option value="id_desc" className="bg-surface text-text-main">ID (N → 1)</option>
-              <option value="difficulty_asc" className="bg-surface text-text-main">Difficulty (Easy → Hard)</option>
-              <option value="difficulty_desc" className="bg-surface text-text-main">Difficulty (Hard → Easy)</option>
-              <option value="title_asc" className="bg-surface text-text-main">Title (A → Z)</option>
-            </select>
-          </div>
+          <SortDropdown value={sortBy} onChange={onSortChange} />
         </div>
       </div>
     </header>

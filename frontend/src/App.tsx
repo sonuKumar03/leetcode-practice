@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopHeader } from './components/layout/TopHeader';
 import { ProblemTable } from './components/problems/ProblemTable';
+import { FilterChips } from './components/problems/FilterChips';
 import { AddQuestionModal } from './components/modals/AddQuestionModal';
 import { NotesModal } from './components/modals/NotesModal';
 import { ExportImportModal } from './components/modals/ExportImportModal';
+import { KeyboardShortcutsModal } from './components/modals/KeyboardShortcutsModal';
 import { problemsApi } from './api/problemsApi';
 import { tagsApi } from './api/tagsApi';
 import { useToast } from './context/ToastContext';
@@ -68,6 +70,7 @@ export function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [activeNotesProblem, setActiveNotesProblem] = useState<Problem | null>(null);
 
   const companyNames = useMemo(
@@ -181,6 +184,10 @@ export function App() {
             setPage((p) => p - 1);
             mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
           }
+          break;
+        case '?':
+          e.preventDefault();
+          setIsShortcutsOpen(true);
           break;
       }
     };
@@ -370,7 +377,26 @@ export function App() {
           onOpenAddModal={() => setIsAddModalOpen(true)}
           onOpenBackupModal={() => setIsBackupModalOpen(true)}
           onOpenSidebar={() => setIsSidebarOpen(true)}
+          onOpenShortcuts={() => setIsShortcutsOpen(true)}
           searchInputRef={searchInputRef}
+          streak={stats?.current_streak}
+        />
+
+        {/* Filter Breadcrumb Chips */}
+        <FilterChips
+          search={search}
+          difficulty={difficulty}
+          status={status}
+          isStarred={isStarred}
+          paidOnly={paidOnly}
+          selectedTag={selectedTag}
+          tagName={stats?.tag_name}
+          onClearSearch={() => { setSearch(''); setPage(1); }}
+          onClearDifficulty={() => { setDifficulty('All'); setPage(1); }}
+          onClearStatus={() => { setStatus('All'); setPage(1); }}
+          onClearStarred={() => { setIsStarred(false); setPage(1); }}
+          onClearPaid={() => { setPaidOnly(undefined); setPage(1); }}
+          onClearTag={() => { setSelectedTag(''); setPage(1); }}
         />
 
         {/* Content Table: Always mounted so layout NEVER jumps */}
@@ -382,6 +408,13 @@ export function App() {
             totalPages={totalPages}
             loading={loading}
             hasActiveFilters={!!(search || difficulty !== 'All' || status !== 'All' || isStarred || paidOnly !== undefined || selectedTag)}
+            sortBy={effectiveSort}
+            onSortChange={(val) => {
+              setSortBy(val);
+              setPage(1);
+              mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+              try { localStorage.setItem('leettracker_sort', val); } catch {}
+            }}
             onPageChange={(newPage) => {
               setPage(newPage);
               mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
@@ -426,6 +459,11 @@ export function App() {
         onClose={() => setIsBackupModalOpen(false)}
         onExportAll={handleExportAll}
         onImportTracking={handleImportTracking}
+      />
+
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
     </div>
   );

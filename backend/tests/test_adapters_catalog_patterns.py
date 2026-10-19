@@ -45,8 +45,8 @@ class TestAdaptersCatalogPatterns(unittest.TestCase):
     def test_catalog_adapter_handles_network_error(self, mock_get):
         mock_get.side_effect = Exception("Connection error")
         adapter = LeetCodeOfficialCatalogAdapter()
-        items = list(adapter.fetch())
-        self.assertEqual(items, [])
+        with self.assertRaises(Exception):
+            list(adapter.fetch())
 
     @patch("requests.get")
     def test_patterns_adapter_parses_curated_lists(self, mock_get):
@@ -72,11 +72,27 @@ class TestAdaptersCatalogPatterns(unittest.TestCase):
         self.assertIn("NeetCode 150", items[0].curated_lists)
 
     @patch("requests.get")
+    def test_patterns_adapter_parses_wrapped_format(self, mock_get):
+        mock_get.return_value = MagicMock(status_code=200)
+        mock_get.return_value.json.return_value = {"updated": "x", "data": [
+            {"id": 1, "title": "Two Sum", "slug": "two-sum", "pattern": ["Array", "Hash Table"],
+             "difficulty": "Easy", "premium": True,
+             "companies": [{"name": "Google", "slug": "google", "frequency": 221}]},
+            "garbage",
+        ]}
+        items = list(CuratedPatternAdapter().fetch())
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].slug, "two-sum")
+        self.assertEqual(items[0].topics, ["Array", "Hash Table"])
+        self.assertEqual(items[0].companies, ["Google"])
+        self.assertTrue(items[0].paid_only)
+
+    @patch("requests.get")
     def test_patterns_adapter_handles_network_error(self, mock_get):
         mock_get.side_effect = Exception("Connection error")
         adapter = CuratedPatternAdapter()
-        items = list(adapter.fetch())
-        self.assertEqual(items, [])
+        with self.assertRaises(Exception):
+            list(adapter.fetch())
 
     def test_adapters_are_registered_in_registry(self):
         registered = [m["name"] for m in AdapterRegistry.list_metadata()]

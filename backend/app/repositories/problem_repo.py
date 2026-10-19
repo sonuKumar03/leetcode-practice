@@ -167,7 +167,9 @@ class ProblemRepository:
             "difficulty_asc": "CASE p.difficulty WHEN 'Easy' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Hard' THEN 3 ELSE 4 END ASC",
             "difficulty_desc": "CASE p.difficulty WHEN 'Hard' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Easy' THEN 3 ELSE 4 END ASC",
             "frequency_desc": "p.frequency DESC, CAST(p.id AS INTEGER) ASC",
-            "status_asc": "COALESCE(ut.status, 'todo') ASC",
+            "frequency_asc": "p.frequency ASC, CAST(p.id AS INTEGER) ASC",
+            "status_asc": "CASE COALESCE(ut.status, 'todo') WHEN 'todo' THEN 1 WHEN 'in_progress' THEN 2 WHEN 'solved' THEN 3 ELSE 4 END ASC, CAST(p.id AS INTEGER) ASC",
+            "status_desc": "CASE COALESCE(ut.status, 'todo') WHEN 'solved' THEN 1 WHEN 'in_progress' THEN 2 WHEN 'todo' THEN 3 ELSE 4 END ASC, CAST(p.id AS INTEGER) ASC",
             "recent": "ut.updated_at DESC NULLS LAST, CAST(p.id AS INTEGER) DESC",
         }
         order_by = order_map.get(sort_by, "CAST(p.id AS INTEGER) ASC, p.id ASC")

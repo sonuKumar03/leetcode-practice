@@ -9,6 +9,9 @@
       // Early theme detection to avoid flash
       (function() {
         var theme = localStorage.getItem('leetcode_tracker_theme') || 'dark';
+        if (theme === 'system') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
         if (theme === 'dark') {
           document.documentElement.classList.add('dark');
         } else {

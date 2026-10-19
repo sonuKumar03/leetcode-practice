@@ -250,6 +250,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             filteredTags.map((t) => {
               const active = selectedTag === t.slug && activeView === 'all';
+              const query = tagSearch.trim().toLowerCase();
+              let nameNode: React.ReactNode = t.name;
+              if (query) {
+                const idx = t.name.toLowerCase().indexOf(query);
+                if (idx !== -1) {
+                  nameNode = (
+                    <>
+                      {t.name.slice(0, idx)}
+                      <span className="text-brand font-bold">{t.name.slice(idx, idx + query.length)}</span>
+                      {t.name.slice(idx + query.length)}
+                    </>
+                  );
+                }
+              }
               return (
                 <button
                   key={t.id}
@@ -260,7 +274,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-text-muted hover:text-text-main hover:bg-surface-hover border border-transparent'
                   }`}
                 >
-                  <span className="truncate text-left">{t.name}</span>
+                  <span className="truncate text-left">{nameNode}</span>
                   <span className="text-xs text-text-subtle ml-1.5 flex-shrink-0 font-mono">
                     {t.problem_count}
                   </span>

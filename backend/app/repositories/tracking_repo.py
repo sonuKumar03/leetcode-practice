@@ -61,6 +61,37 @@ class TrackingRepository:
         solved = stats["solved_problems"]
         stats["completion_percentage"] = round((solved / total * 100), 1) if total > 0 else 0.0
 
+        # Calculate current streak (consecutive days with activity)
+        streak_rows = conn.execute("""
+            SELECT DISTINCT date(updated_at) as activity_date
+            FROM user_tracking
+            WHERE updated_at IS NOT NULL
+            ORDER BY activity_date DESC
+        """).fetchall()
+        current_streak = 0
+        if streak_rows:
+            from datetime import date, timedelta
+            today = date.today()
+            expected = today
+            for row in streak_rows:
+                d = date.fromisoformat(row["activity_date"])
+                if d == expected:
+                    current_streak += 1
+                    expected -= timedelta(days=1)
+                elif d < expected:
+                    break
+            # If no activity today, check if yesterday starts the streak
+            if current_streak == 0 and streak_rows:
+                expected = today - timedelta(days=1)
+                for row in streak_rows:
+                    d = date.fromisoformat(row["activity_date"])
+                    if d == expected:
+                        current_streak += 1
+                        expected -= timedelta(days=1)
+                    elif d < expected:
+                        break
+        stats["current_streak"] = current_streak
+
         if tag_slug:
             tag_row = conn.execute("""
                 SELECT 

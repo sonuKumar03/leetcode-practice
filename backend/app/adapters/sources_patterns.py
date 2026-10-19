@@ -20,32 +20,36 @@ class CuratedPatternAdapter(BaseSourceAdapter):
 
     def fetch(self) -> Iterable[RawProblemItem]:
         logger.info(f"Fetching curated patterns from {self.url}...")
-        try:
-            resp = requests.get(self.url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
-            resp.raise_for_status()
-            data = resp.json()
-        except Exception as e:
-            logger.error(f"Curated patterns fetch failed: {e}")
-            return
+        resp = requests.get(self.url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+
+        # Upstream now wraps entries as {"updated": ..., "data": [...]}; older dumps were a bare list.
+        entries = data.get("data", []) if isinstance(data, dict) else data
 
         url_regex = re.compile(r"leetcode\.com/problems/([^/]+)")
-        for entry in data:
-            raw_url = entry.get("url", "")
-            match = url_regex.search(raw_url)
-            slug = match.group(1).lower().strip() if match else None
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            match = url_regex.search(entry.get("url", ""))
+            slug = (entry.get("slug") or (match.group(1) if match else "")).lower().strip()
             if not slug:
                 continue
 
             pattern = entry.get("pattern")
-            diff = entry.get("difficulty")
-            title = entry.get("name")
-            curated_lists = entry.get("lists", ["Curated Study Plan"])
+            topics = pattern if isinstance(pattern, list) else ([pattern] if pattern else [])
+            companies = [
+                c["name"] for c in entry.get("companies", [])
+                if isinstance(c, dict) and c.get("name")
+            ]
 
             yield RawProblemItem(
                 slug=slug,
-                title=title,
-                difficulty=diff,
-                topics=[pattern] if pattern else [],
-                curated_lists=curated_lists,
-                frequency_delta=2
+                title=entry.get("title") or entry.get("name"),
+                difficulty=entry.get("difficulty"),
+                paid_only=bool(entry.get("premium", False)),
+                topics=topics,
+                companies=companies,
+                curated_lists=entry.get("lists") or ["Curated Study Plan"],
+                frequency_delta=2,
             )

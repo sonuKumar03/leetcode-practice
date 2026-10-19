@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS problems (
     paid_only INTEGER DEFAULT 0,
     leetcode_url TEXT,
     doocs_url TEXT,
-    source TEXT DEFAULT 'doocs', -- 'doocs' or 'custom'
+    source TEXT DEFAULT 'doocs', -- 'doocs', 'custom' or 'sync'
     frequency INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -29,6 +29,15 @@ CREATE TABLE IF NOT EXISTS problem_tags (
     PRIMARY KEY (problem_id, tag_id),
     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+);
+
+-- Per-source interview frequency; problems.frequency is the sum (keeps sync idempotent)
+CREATE TABLE IF NOT EXISTS problem_source_freq (
+    problem_id TEXT NOT NULL,
+    source TEXT NOT NULL,
+    frequency INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (problem_id, source),
+    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS user_tracking (

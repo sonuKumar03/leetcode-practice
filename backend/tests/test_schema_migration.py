@@ -45,6 +45,7 @@ class TestSchemaMigration(unittest.TestCase):
         cursor.execute("PRAGMA table_info(problems);")
         columns = [row["name"] for row in cursor.fetchall()]
         self.assertIn("frequency", columns)
+        self.assertIn("updated_at", columns)
         conn.close()
 
     def test_batch_upsert_enriches_and_preserves_user_tracking(self):
@@ -96,9 +97,68 @@ class TestSchemaMigration(unittest.TestCase):
         self.assertEqual(tracking["is_starred"], 1)
         self.assertEqual(tracking["notes"], "My custom note")
 
+    def test_batch_upsert_skips_unknown_slug_without_id(self):
+        item = RawProblemItem(slug="brand-new", title="Brand New", topics=["Array"], frequency_delta=3)
+        stats = ProblemRepository.batch_upsert_enriched_problems([item], conn=self.conn)
+        self.assertEqual(stats["upserted_problems"], 0)
+        self.assertEqual(stats["skipped_unknown_id"], 1)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) c FROM problems").fetchone()["c"], 0)
+
+    def test_batch_upsert_does_not_overwrite_id_owned_by_other_slug(self):
+        self.conn.execute("INSERT INTO problems (id, title, slug) VALUES ('7', 'Seven', 'seven')")
+        item = RawProblemItem(slug="other", leetcode_id="7", title="Other")
+        stats = ProblemRepository.batch_upsert_enriched_problems([item], conn=self.conn)
+        self.assertEqual(stats["skipped_unknown_id"], 1)
+        self.assertEqual(self.conn.execute("SELECT slug FROM problems WHERE id='7'").fetchone()["slug"], "seven")
+
+    def test_frequency_sums_sources_and_replaces_per_source(self):
+        mk = lambda d: RawProblemItem(slug="two-sum", leetcode_id="1", title="Two Sum", frequency_delta=d)
+        up = ProblemRepository.batch_upsert_enriched_problems
+        up([mk(10)], conn=self.conn, source="a")
+        up([mk(4)], conn=self.conn, source="b")
+        up([mk(10)], conn=self.conn, source="a")  # re-run must not double count
+        self.assertEqual(self.conn.execute("SELECT frequency FROM problems WHERE id='1'").fetchone()[0], 14)
+
+    def test_only_catalog_overwrites_title_and_difficulty(self):
+        up = ProblemRepository.batch_upsert_enriched_problems
+        up([RawProblemItem(slug="two-sum", leetcode_id="1", title="Two Sum", difficulty="Easy", paid_only=True)],
+           conn=self.conn, source="leetcode_catalog")
+        up([RawProblemItem(slug="two-sum", title="two sum!!", difficulty="Hard")], conn=self.conn, source="markdown_repos")
+        row = self.conn.execute("SELECT title, difficulty, paid_only FROM problems WHERE id='1'").fetchone()
+        self.assertEqual((row["title"], row["difficulty"], row["paid_only"]), ("Two Sum", "Easy", 1))
+        up([RawProblemItem(slug="two-sum", title="Two Sum II", difficulty="Medium")], conn=self.conn, source="leetcode_catalog")
+        row = self.conn.execute("SELECT title, difficulty FROM problems WHERE id='1'").fetchone()
+        self.assertEqual((row["title"], row["difficulty"]), ("Two Sum II", "Medium"))
+
+    def test_tag_slug_clash_keeps_types_separate(self):
+        item = RawProblemItem(slug="p", leetcode_id="9", title="P", topics=["Stack"], companies=["Stack"])
+        ProblemRepository.batch_upsert_enriched_problems([item], conn=self.conn)
+        types = {r["type"] for r in self.conn.execute("SELECT type FROM tags WHERE name LIKE 'Stack%'")}
+        self.assertEqual(types, {"topic", "company"})
+
+    def test_tag_clash_with_legacy_unique_name_schema(self):
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        conn.executescript("""
+            CREATE TABLE problems (id TEXT PRIMARY KEY, title TEXT NOT NULL, slug TEXT NOT NULL UNIQUE,
+                difficulty TEXT DEFAULT 'Unknown', paid_only INTEGER DEFAULT 0, leetcode_url TEXT, doocs_url TEXT,
+                source TEXT DEFAULT 'doocs', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+            CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL,
+                slug TEXT UNIQUE NOT NULL, type TEXT DEFAULT 'topic');
+            INSERT INTO tags (name, slug, type) VALUES ('Arista Networks', 'arista', 'company');
+        """)
+        init_db(conn)
+        item = RawProblemItem(slug="p", leetcode_id="9", title="P", topics=["Stack"],
+                              companies=["Arista Networks", "arista networks", "Stack"])
+        ProblemRepository.batch_upsert_enriched_problems([item], conn=conn)
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM tags WHERE type='company' AND name LIKE 'Arista%'").fetchone()[0], 1)
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM problem_tags").fetchone()[0], 3)
+        conn.close()
+
     def test_batch_upsert_creates_new_problem_when_absent(self):
         item = RawProblemItem(
             slug="median-of-two-sorted-arrays",
+            leetcode_id="4",
             title="Median of Two Sorted Arrays",
             difficulty="Hard",
             topics=["Binary Search", "Divide and Conquer"],

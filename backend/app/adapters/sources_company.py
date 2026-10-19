@@ -44,6 +44,7 @@ class CompanyWiseCsvAdapter(BaseSourceAdapter):
         file_names = self._get_company_file_names()
         logger.info(f"Processing {len(file_names)} company CSV files...")
 
+        failed = 0
         for filename in file_names:
 
             company_name = filename.replace(".csv", "").replace("%20", " ")
@@ -51,6 +52,7 @@ class CompanyWiseCsvAdapter(BaseSourceAdapter):
             try:
                 resp = requests.get(csv_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
                 if resp.status_code != 200:
+                    failed += 1
                     continue
 
                 reader = csv.DictReader(io.StringIO(resp.text))
@@ -76,4 +78,8 @@ class CompanyWiseCsvAdapter(BaseSourceAdapter):
                         frequency_delta=max(occur, 1)
                     )
             except Exception as e:
+                failed += 1
                 logger.warning(f"Failed to process company {company_name}: {e}")
+
+        if file_names and failed == len(file_names):
+            raise RuntimeError(f"All {failed} company CSV downloads failed")

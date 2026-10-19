@@ -10,6 +10,7 @@ export interface Problem {
   leetcode_url: string;
   doocs_url: string;
   source: 'doocs' | 'custom';
+  frequency?: number;
   tags: string[];
   status: Status;
   is_starred: boolean;
@@ -38,6 +39,7 @@ export interface Stats {
   medium_solved: number;
   hard_total: number;
   hard_solved: number;
+  current_streak: number;
   tag_name?: string;
   tag_total?: number;
   tag_solved?: number;

@@ -13,25 +13,22 @@ def init_db(conn: Optional[sqlite3.Connection] = None) -> None:
         close_at_end = True
 
     try:
-        # Auto-migration if problems table already exists without frequency column
+        # Migrate pre-frequency databases before the schema script (which indexes the column)
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='problems';")
-        if cursor.fetchone():
-            cursor.execute("PRAGMA table_info(problems);")
-            columns = [row[1] for row in cursor.fetchall()]
+        has_problems = cursor.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='problems'"
+        ).fetchone()
+        if has_problems:
+            columns = [row[1] for row in cursor.execute("PRAGMA table_info(problems)")]
             if "frequency" not in columns:
-                cursor.execute("ALTER TABLE problems ADD COLUMN frequency INTEGER DEFAULT 0;")
+                cursor.execute("ALTER TABLE problems ADD COLUMN frequency INTEGER DEFAULT 0")
+            if "updated_at" not in columns:
+                # SQLite cannot ADD COLUMN with a non-constant default; backfill instead
+                cursor.execute("ALTER TABLE problems ADD COLUMN updated_at TIMESTAMP")
+                cursor.execute("UPDATE problems SET updated_at = CURRENT_TIMESTAMP")
 
         with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
-            schema = f.read()
-        conn.executescript(schema)
-
-        # Ensure index exists and auto-migration is complete
-        cursor.execute("PRAGMA table_info(problems);")
-        columns = [row[1] for row in cursor.fetchall()]
-        if "frequency" not in columns:
-            cursor.execute("ALTER TABLE problems ADD COLUMN frequency INTEGER DEFAULT 0;")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_problems_frequency ON problems(frequency DESC);")
+            conn.executescript(f.read())
         conn.commit()
     finally:
         if close_at_end:
