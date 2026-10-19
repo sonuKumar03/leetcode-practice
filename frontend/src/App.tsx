@@ -42,6 +42,7 @@ export function App() {
   const [status, setStatus] = useState(url.get('status', 'All'));
   const [isStarred, setIsStarred] = useState(url.getBool('starred') === true);
   const [paidOnly, setPaidOnly] = useState<boolean | undefined>(url.getBool('paid'));
+  const [searchNotes, setSearchNotes] = useState(false);
   const [sortBy, setSortBy] = useState(() => {
     const fromUrl = url.get('sort');
     if (fromUrl) return fromUrl;
@@ -119,6 +120,7 @@ export function App() {
       const res = await problemsApi.getProblems({
         tag: selectedTag || undefined,
         search: debouncedSearch.trim() || undefined,
+        search_notes: searchNotes || undefined,
         difficulty,
         status: effectiveStatus,
         is_starred: effectiveStarred || undefined,
@@ -136,7 +138,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedTag, debouncedSearch, difficulty, effectiveStatus, effectiveStarred, paidOnly, effectiveSort, page, toast]);
+  }, [selectedTag, debouncedSearch, searchNotes, difficulty, effectiveStatus, effectiveStarred, paidOnly, effectiveSort, page, toast]);
 
   useEffect(() => {
     loadTags();
@@ -378,6 +380,8 @@ export function App() {
           onOpenBackupModal={() => setIsBackupModalOpen(true)}
           onOpenSidebar={() => setIsSidebarOpen(true)}
           onOpenShortcuts={() => setIsShortcutsOpen(true)}
+          searchNotes={searchNotes}
+          onToggleSearchNotes={() => setSearchNotes(!searchNotes)}
           searchInputRef={searchInputRef}
           streak={stats?.current_streak}
         />

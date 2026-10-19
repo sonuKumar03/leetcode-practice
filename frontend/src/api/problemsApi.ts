@@ -6,6 +6,7 @@ export interface GetProblemsParams {
   difficulty?: string;
   status?: string;
   search?: string;
+  search_notes?: boolean;
   is_starred?: boolean;
   paid_only?: boolean;
   sort_by?: string;
@@ -20,6 +21,7 @@ export const problemsApi = {
     if (params.difficulty && params.difficulty !== 'All') query.set('difficulty', params.difficulty);
     if (params.status && params.status !== 'All') query.set('status', params.status);
     if (params.search) query.set('search', params.search);
+    if (params.search_notes) query.set('search_notes', 'true');
     if (params.is_starred) query.set('is_starred', 'true');
     if (params.paid_only !== undefined) query.set('paid_only', String(params.paid_only));
     if (params.sort_by) query.set('sort_by', params.sort_by);

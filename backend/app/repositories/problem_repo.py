@@ -106,6 +106,7 @@ class ProblemRepository:
         search: Optional[str] = None,
         is_starred: Optional[bool] = None,
         paid_only: Optional[bool] = None,
+        search_notes: bool = False,
         page: int = 1,
         page_size: int = 50,
         sort_by: str = "id_asc",
@@ -144,8 +145,12 @@ class ProblemRepository:
 
         if search:
             clean_search = f"%{search.strip().lower()}%"
-            conditions.append("(LOWER(p.id) LIKE ? OR LOWER(p.title) LIKE ?)")
-            params.extend([clean_search, clean_search])
+            if search_notes:
+                conditions.append("(LOWER(p.id) LIKE ? OR LOWER(p.title) LIKE ? OR LOWER(COALESCE(ut.notes, '')) LIKE ?)")
+                params.extend([clean_search, clean_search, clean_search])
+            else:
+                conditions.append("(LOWER(p.id) LIKE ? OR LOWER(p.title) LIKE ?)")
+                params.extend([clean_search, clean_search])
 
         where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
 

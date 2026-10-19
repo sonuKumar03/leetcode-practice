@@ -24,6 +24,7 @@ def get_problems(
         None, description="todo, in_progress, solved, or All"
     ),
     search: Optional[str] = Query(None, description="Search by ID or Title"),
+    search_notes: bool = Query(False, description="Also search within notes"),
     is_starred: Optional[bool] = Query(
         None, description="Filter only starred/bookmarked"
     ),
@@ -42,6 +43,7 @@ def get_problems(
             difficulty=difficulty,
             status=status,
             search=search,
+            search_notes=search_notes,
             is_starred=is_starred,
             paid_only=paid_only,
             page=page,

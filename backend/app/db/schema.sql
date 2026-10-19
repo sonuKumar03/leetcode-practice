@@ -74,3 +74,4 @@ CREATE INDEX IF NOT EXISTS idx_user_tracking_status ON user_tracking(status);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_starred ON user_tracking(is_starred);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_status_starred ON user_tracking(status, is_starred);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_cover ON user_tracking(problem_id, status, is_starred);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_notes ON user_tracking(notes) WHERE notes IS NOT NULL AND notes != '';

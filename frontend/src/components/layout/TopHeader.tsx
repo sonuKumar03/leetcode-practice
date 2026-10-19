@@ -14,10 +14,10 @@ import {
   Check,
   ChevronDown,
   MoreHorizontal,
+  FileText,
 } from 'lucide-react';
 import type { Stats } from '../../types';
 import { Button } from '../../design-system/components/Button';
-import { Input } from '../../design-system/components/Input';
 import { SegmentedControl } from '../../design-system/components/SegmentedControl';
 import type { SegmentOption } from '../../design-system/components/SegmentedControl';
 import { ProgressBar } from '../../design-system/components/ProgressBar';
@@ -43,6 +43,8 @@ interface TopHeaderProps {
   onOpenBackupModal: () => void;
   onOpenSidebar: () => void;
   onOpenShortcuts: () => void;
+  searchNotes?: boolean;
+  onToggleSearchNotes?: () => void;
   searchInputRef?: React.Ref<HTMLInputElement>;
   streak?: number;
 }
@@ -192,6 +194,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenBackupModal,
   onOpenSidebar,
   onOpenShortcuts,
+  searchNotes = false,
+  onToggleSearchNotes,
   searchInputRef,
   streak = 0,
 }) => {
@@ -300,13 +304,45 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       <div className="flex flex-col 2xl:flex-row 2xl:items-center gap-3">
         {/* Search Input */}
         <div className="w-full 2xl:max-w-xs flex-shrink-0">
-          <Input
-            ref={searchInputRef}
-            placeholder="Search questions by ID or title... (/)"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            icon={<Search className="w-3.5 h-3.5" />}
-          />
+          <div className="relative w-full">
+            {/* Search icon */}
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
+              <Search className="w-3.5 h-3.5" />
+            </div>
+            <input
+              ref={searchInputRef}
+              placeholder={searchNotes ? "Search titles + notes... (/)" : "Search by ID or title... (/)"}
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full py-2 pl-9 pr-20 text-sm bg-surface border border-border rounded-xl text-text-main placeholder-text-subtle focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors"
+            />
+            {/* Notes toggle inside the input */}
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 group flex items-center">
+              <button
+                role="switch"
+                onClick={onToggleSearchNotes}
+                aria-checked={searchNotes}
+                aria-label="Toggle notes search"
+                className={`relative w-14 h-7 rounded-full transition-colors duration-200 cursor-pointer ${
+                  searchNotes ? 'bg-brand/30' : 'bg-surface-active'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 flex items-center justify-center w-6 h-6 rounded-full shadow-sm transition-all duration-200 ${
+                    searchNotes
+                      ? 'left-[30px] bg-brand text-white'
+                      : 'left-0.5 bg-elevated text-text-muted'
+                  }`}
+                >
+                  <FileText className="w-3 h-3" />
+                </span>
+              </button>
+              <div className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 text-xs rounded-lg bg-elevated border border-border shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 text-text-main z-50">
+                {searchNotes ? 'Searching titles + notes' : 'Include notes in search'}
+                <div className="absolute top-full right-3 -mt-px border-4 border-transparent border-t-border" />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Segmented Filters */}
