@@ -18,6 +18,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const logout = useCallback(() => {
+    authApi.logout().catch(() => {});
     clearAuthToken();
     setUser(null);
   }, []);

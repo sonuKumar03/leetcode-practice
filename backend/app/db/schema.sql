@@ -47,6 +47,14 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
 CREATE TABLE IF NOT EXISTS user_tracking (
     user_id TEXT NOT NULL,
     problem_id TEXT NOT NULL,
@@ -86,4 +94,8 @@ CREATE INDEX IF NOT EXISTS idx_user_tracking_starred ON user_tracking(user_id, i
 CREATE INDEX IF NOT EXISTS idx_user_tracking_status_starred ON user_tracking(user_id, status, is_starred);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_cover ON user_tracking(user_id, problem_id, status, is_starred);
 CREATE INDEX IF NOT EXISTS idx_user_tracking_notes ON user_tracking(user_id, notes) WHERE notes IS NOT NULL AND notes != '';
+
+-- 5. Sessions indexes
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
 

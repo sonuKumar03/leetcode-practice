@@ -24,4 +24,10 @@ export const authApi = {
   getMe: (): Promise<User> => {
     return apiRequest<User>('/api/v1/auth/me');
   },
+
+  logout: (): Promise<{ status: string }> => {
+    return apiRequest<{ status: string }>('/api/v1/auth/logout', {
+      method: 'POST',
+    });
+  },
 };

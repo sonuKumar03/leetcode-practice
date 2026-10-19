@@ -103,6 +103,18 @@ class TestAuthAndTracking(unittest.TestCase):
             self.assertGreaterEqual(s1["solved_problems"], 1)
             self.assertEqual(s2["solved_problems"], 0)
 
+        # 8. Test real server-side logout
+        logout_resp = self.client.post("/api/v1/auth/logout", headers=h1)
+        self.assertEqual(logout_resp.status_code, 200)
+
+        # Alice's token should now be rejected immediately
+        revoked_me = self.client.get("/api/v1/auth/me", headers=h1)
+        self.assertEqual(revoked_me.status_code, 401)
+
+        # Bob's token should still be active
+        active_me = self.client.get("/api/v1/auth/me", headers=h2)
+        self.assertEqual(active_me.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()

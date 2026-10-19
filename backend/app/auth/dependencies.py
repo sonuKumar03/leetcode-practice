@@ -1,10 +1,9 @@
-import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.auth.jwt_utils import decode_access_token
 from app.auth.protocol import User
 from app.auth.service import auth_service
+from app.auth.session_utils import get_user_id_by_session
 from app.db.session import get_db_connection
 
 _bearer_scheme = HTTPBearer()
@@ -13,15 +12,13 @@ _bearer_scheme = HTTPBearer()
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
 ) -> User:
-    try:
-        payload = decode_access_token(credentials.credentials)
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
+    token = credentials.credentials
     with get_db_connection() as conn:
-        user = auth_service.get_user_by_id(conn, payload["sub"])
+        user_id = get_user_id_by_session(conn, token)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid or expired session")
+        user = auth_service.get_user_by_id(conn, user_id)
+
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
