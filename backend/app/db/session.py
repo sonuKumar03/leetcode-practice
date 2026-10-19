@@ -27,6 +27,14 @@ def init_db(conn: Optional[sqlite3.Connection] = None) -> None:
                 cursor.execute("ALTER TABLE problems ADD COLUMN updated_at TIMESTAMP")
                 cursor.execute("UPDATE problems SET updated_at = CURRENT_TIMESTAMP")
 
+        has_tracking = cursor.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_tracking'"
+        ).fetchone()
+        if has_tracking:
+            tracking_cols = [row[1] for row in cursor.execute("PRAGMA table_info(user_tracking)")]
+            if "user_id" not in tracking_cols:
+                cursor.execute("DROP TABLE user_tracking")
+
         with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
             conn.executescript(f.read())
         conn.commit()

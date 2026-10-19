@@ -17,6 +17,7 @@ class ProblemRepository:
         doocs_url: Optional[str] = None,
         notes: Optional[str] = None,
         source: str = "custom",
+        user_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         slug = slugify(title)
         if not leetcode_url:
@@ -54,20 +55,20 @@ class ProblemRepository:
                     (problem_id, tag_id)
                 )
 
-        if notes:
+        if notes and user_id:
             conn.execute(
                 """
-                INSERT INTO user_tracking (problem_id, status, notes)
-                VALUES (?, 'todo', ?)
-                ON CONFLICT(problem_id) DO UPDATE SET notes = excluded.notes
+                INSERT INTO user_tracking (user_id, problem_id, status, notes)
+                VALUES (?, ?, 'todo', ?)
+                ON CONFLICT(user_id, problem_id) DO UPDATE SET notes = excluded.notes
                 """,
-                (problem_id, notes)
+                (user_id, problem_id, notes)
             )
 
-        return ProblemRepository.get_by_id(conn, problem_id)
+        return ProblemRepository.get_by_id(conn, problem_id, user_id=user_id)
 
     @staticmethod
-    def get_by_id(conn: sqlite3.Connection, problem_id: str) -> Optional[Dict[str, Any]]:
+    def get_by_id(conn: sqlite3.Connection, problem_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         query = """
             SELECT 
                 p.*,
@@ -76,10 +77,10 @@ class ProblemRepository:
                 COALESCE(ut.notes, '') as notes,
                 ut.updated_at
             FROM problems p
-            LEFT JOIN user_tracking ut ON p.id = ut.problem_id
+            LEFT JOIN user_tracking ut ON p.id = ut.problem_id AND ut.user_id = ?
             WHERE p.id = ?
         """
-        row = conn.execute(query, (problem_id,)).fetchone()
+        row = conn.execute(query, (user_id, problem_id)).fetchone()
         if not row:
             return None
 
@@ -100,6 +101,7 @@ class ProblemRepository:
     @staticmethod
     def list_problems(
         conn: sqlite3.Connection,
+        user_id: Optional[str] = None,
         tag: Optional[str] = None,
         difficulty: Optional[str] = None,
         status: Optional[str] = None,
@@ -158,10 +160,11 @@ class ProblemRepository:
         count_query = f"""
             SELECT COUNT(p.id)
             FROM problems p
-            LEFT JOIN user_tracking ut ON p.id = ut.problem_id
+            LEFT JOIN user_tracking ut ON p.id = ut.problem_id AND ut.user_id = ?
             {where_clause}
         """
-        total = conn.execute(count_query, params).fetchone()[0]
+        count_params = [user_id] + params
+        total = conn.execute(count_query, count_params).fetchone()[0]
 
         # Order by logic
         order_map = {
@@ -188,12 +191,12 @@ class ProblemRepository:
                 COALESCE(ut.notes, '') as notes,
                 ut.updated_at
             FROM problems p
-            LEFT JOIN user_tracking ut ON p.id = ut.problem_id
+            LEFT JOIN user_tracking ut ON p.id = ut.problem_id AND ut.user_id = ?
             {where_clause}
             ORDER BY {order_by}
             LIMIT ? OFFSET ?
         """
-        data_params = params + [page_size, offset]
+        data_params = [user_id] + params + [page_size, offset]
         rows = conn.execute(data_query, data_params).fetchall()
 
         problems = []

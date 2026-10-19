@@ -56,8 +56,12 @@ class TestSchemaMigration(unittest.TestCase):
             VALUES ('1', 'Two Sum', 'two-sum', 'Easy', 0)
         """)
         cursor.execute("""
-            INSERT INTO user_tracking (problem_id, status, is_starred, notes)
-            VALUES ('1', 'Solved', 1, 'My custom note')
+            INSERT INTO users (id, email, password_hash)
+            VALUES ('u1', 'test@test.com', 'hash')
+        """)
+        cursor.execute("""
+            INSERT INTO user_tracking (user_id, problem_id, status, is_starred, notes)
+            VALUES ('u1', '1', 'Solved', 1, 'My custom note')
         """)
         self.conn.commit()
 

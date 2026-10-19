@@ -40,12 +40,22 @@ CREATE TABLE IF NOT EXISTS problem_source_freq (
     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS user_tracking (
-    problem_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    problem_id TEXT NOT NULL,
     status TEXT CHECK(LOWER(status) IN ('todo', 'in_progress', 'solved')) DEFAULT 'todo',
     is_starred INTEGER DEFAULT 0,
     notes TEXT DEFAULT '',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, problem_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
 );
 
@@ -70,8 +80,10 @@ CREATE INDEX IF NOT EXISTS idx_problem_tags_tag ON problem_tags(tag_id);
 CREATE INDEX IF NOT EXISTS idx_problem_tags_tag_problem ON problem_tags(tag_id, problem_id);
 
 -- 4. User Tracking indexes
-CREATE INDEX IF NOT EXISTS idx_user_tracking_status ON user_tracking(status);
-CREATE INDEX IF NOT EXISTS idx_user_tracking_starred ON user_tracking(is_starred);
-CREATE INDEX IF NOT EXISTS idx_user_tracking_status_starred ON user_tracking(status, is_starred);
-CREATE INDEX IF NOT EXISTS idx_user_tracking_cover ON user_tracking(problem_id, status, is_starred);
-CREATE INDEX IF NOT EXISTS idx_user_tracking_notes ON user_tracking(notes) WHERE notes IS NOT NULL AND notes != '';
+CREATE INDEX IF NOT EXISTS idx_user_tracking_user ON user_tracking(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_status ON user_tracking(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_starred ON user_tracking(user_id, is_starred);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_status_starred ON user_tracking(user_id, status, is_starred);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_cover ON user_tracking(user_id, problem_id, status, is_starred);
+CREATE INDEX IF NOT EXISTS idx_user_tracking_notes ON user_tracking(user_id, notes) WHERE notes IS NOT NULL AND notes != '';
+

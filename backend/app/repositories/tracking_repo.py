@@ -5,41 +5,53 @@ class TrackingRepository:
     @staticmethod
     def upsert_tracking(
         conn: sqlite3.Connection,
+        user_id: str,
         problem_id: str,
         status: Optional[str] = None,
         is_starred: Optional[bool] = None,
         notes: Optional[str] = None,
     ) -> Dict[str, Any]:
-        existing = conn.execute("SELECT * FROM user_tracking WHERE problem_id = ?", (problem_id,)).fetchone()
-        
+        existing = conn.execute(
+            "SELECT * FROM user_tracking WHERE user_id = ? AND problem_id = ?",
+            (user_id, problem_id),
+        ).fetchone()
+
         curr_status = existing["status"] if existing else "todo"
         curr_starred = bool(existing["is_starred"]) if existing else False
         curr_notes = existing["notes"] if existing else ""
-        
+
         new_status = status if status is not None else curr_status
         new_starred = int(is_starred) if is_starred is not None else int(curr_starred)
         new_notes = notes if notes is not None else curr_notes
 
         conn.execute(
             """
-            INSERT INTO user_tracking (problem_id, status, is_starred, notes, updated_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(problem_id) DO UPDATE SET
+            INSERT INTO user_tracking (user_id, problem_id, status, is_starred, notes, updated_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id, problem_id) DO UPDATE SET
                 status = excluded.status,
                 is_starred = excluded.is_starred,
                 notes = excluded.notes,
                 updated_at = CURRENT_TIMESTAMP
             """,
-            (problem_id, new_status, new_starred, new_notes)
+            (user_id, problem_id, new_status, new_starred, new_notes),
         )
-        
-        row = conn.execute("SELECT * FROM user_tracking WHERE problem_id = ?", (problem_id,)).fetchone()
+
+        row = conn.execute(
+            "SELECT * FROM user_tracking WHERE user_id = ? AND problem_id = ?",
+            (user_id, problem_id),
+        ).fetchone()
         return dict(row)
 
     @staticmethod
-    def get_stats(conn: sqlite3.Connection, tag_slug: Optional[str] = None) -> Dict[str, Any]:
+    def get_stats(
+        conn: sqlite3.Connection,
+        user_id: str,
+        tag_slug: Optional[str] = None,
+    ) -> Dict[str, Any]:
         # Overall counts
-        overall_row = conn.execute("""
+        overall_row = conn.execute(
+            """
             SELECT 
                 COUNT(p.id) as total_problems,
                 COUNT(CASE WHEN ut.status = 'solved' THEN 1 END) as solved_problems,
@@ -53,8 +65,10 @@ class TrackingRepository:
                 COUNT(CASE WHEN p.difficulty = 'Hard' THEN 1 END) as hard_total,
                 COUNT(CASE WHEN p.difficulty = 'Hard' AND ut.status = 'solved' THEN 1 END) as hard_solved
             FROM problems p
-            LEFT JOIN user_tracking ut ON p.id = ut.problem_id
-        """).fetchone()
+            LEFT JOIN user_tracking ut ON p.id = ut.problem_id AND ut.user_id = ?
+        """,
+            (user_id,),
+        ).fetchone()
 
         stats = dict(overall_row)
         total = stats["total_problems"]
@@ -62,12 +76,15 @@ class TrackingRepository:
         stats["completion_percentage"] = round((solved / total * 100), 1) if total > 0 else 0.0
 
         # Calculate current streak (consecutive days with activity)
-        streak_rows = conn.execute("""
+        streak_rows = conn.execute(
+            """
             SELECT DISTINCT date(updated_at) as activity_date
             FROM user_tracking
-            WHERE updated_at IS NOT NULL
+            WHERE user_id = ? AND updated_at IS NOT NULL
             ORDER BY activity_date DESC
-        """).fetchall()
+        """,
+            (user_id,),
+        ).fetchall()
         current_streak = 0
         if streak_rows:
             from datetime import date, timedelta
@@ -93,7 +110,8 @@ class TrackingRepository:
         stats["current_streak"] = current_streak
 
         if tag_slug:
-            tag_row = conn.execute("""
+            tag_row = conn.execute(
+                """
                 SELECT 
                     t.name as tag_name,
                     COUNT(p.id) as tag_total,
@@ -101,13 +119,16 @@ class TrackingRepository:
                 FROM tags t
                 JOIN problem_tags pt ON t.id = pt.tag_id
                 JOIN problems p ON pt.problem_id = p.id
-                LEFT JOIN user_tracking ut ON p.id = ut.problem_id
+                LEFT JOIN user_tracking ut ON p.id = ut.problem_id AND ut.user_id = ?
                 WHERE t.slug = ?
                 GROUP BY t.id
-            """, (tag_slug,)).fetchone()
+            """,
+                (user_id, tag_slug),
+            ).fetchone()
             if tag_row:
                 stats["tag_name"] = tag_row["tag_name"]
                 stats["tag_total"] = tag_row["tag_total"]
                 stats["tag_solved"] = tag_row["tag_solved"]
 
         return stats
+

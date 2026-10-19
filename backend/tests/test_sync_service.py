@@ -143,8 +143,12 @@ class TestSyncService(unittest.TestCase):
             VALUES ('56', 'Old Title', 'merge-intervals', 'Easy', 5)
         """)
         cursor.execute("""
-            INSERT INTO user_tracking (problem_id, status, is_starred, notes)
-            VALUES ('56', 'Solved', 1, 'Review binary search pattern')
+            INSERT INTO users (id, email, password_hash)
+            VALUES ('u1', 'test@test.com', 'hash')
+        """)
+        cursor.execute("""
+            INSERT INTO user_tracking (user_id, problem_id, status, is_starred, notes)
+            VALUES ('u1', '56', 'Solved', 1, 'Review binary search pattern')
         """)
         self.conn.commit()
 

@@ -10,3 +10,6 @@ SCHEMA_PATH = Path(__file__).resolve().parent / "db" / "schema.sql"
 
 DOOCS_TAGS_URL = "https://leetcode.doocs.org/en/tags/"
 LEETCODE_API_URL = "https://leetcode.com/api/problems/all/"
+
+JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-dev-key-change-in-production")
+JWT_EXPIRY_DAYS = int(os.getenv("JWT_EXPIRY_DAYS", "7"))

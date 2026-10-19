@@ -1,5 +1,7 @@
 from typing import Optional
 
+from app.auth.dependencies import get_current_user
+from app.auth.protocol import User
 from app.db.session import get_db_connection
 from app.models.problem import (
     MetadataLookupOut,
@@ -9,7 +11,7 @@ from app.models.problem import (
 )
 from app.repositories.problem_repo import ProblemRepository
 from app.services.metadata_service import MetadataService
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
@@ -35,10 +37,12 @@ def get_problems(
     ),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
+    user: User = Depends(get_current_user),
 ):
     with get_db_connection() as conn:
         items, total = ProblemRepository.list_problems(
             conn=conn,
+            user_id=user.id,
             tag=tag,
             difficulty=difficulty,
             status=status,
@@ -72,16 +76,16 @@ def lookup_metadata(
 
 
 @router.get("/{problem_id}", response_model=ProblemOut)
-def get_problem(problem_id: str):
+def get_problem(problem_id: str, user: User = Depends(get_current_user)):
     with get_db_connection() as conn:
-        problem = ProblemRepository.get_by_id(conn, problem_id)
+        problem = ProblemRepository.get_by_id(conn, problem_id, user_id=user.id)
         if not problem:
             raise HTTPException(status_code=404, detail="Problem not found")
         return ProblemOut(**problem)
 
 
 @router.post("", response_model=ProblemOut, status_code=201)
-def add_problem(payload: ProblemCreate):
+def add_problem(payload: ProblemCreate, user: User = Depends(get_current_user)):
     """Add a new question (custom or LeetCode) to the SQLite database."""
     with get_db_connection() as conn:
         created = ProblemRepository.create_problem(
@@ -95,5 +99,6 @@ def add_problem(payload: ProblemCreate):
             doocs_url=payload.doocs_url,
             notes=payload.notes,
             source="custom",
+            user_id=user.id,
         )
         return ProblemOut(**created)
