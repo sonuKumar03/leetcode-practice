@@ -31,7 +31,7 @@ class PasswordAuthProvider:
         except IntegrityError:
             db.rollback()
             raise AuthError("Email already registered", status_code=409)
-        return User(id=created["id"], email=created["email"], created_at=created["created_at"])
+        return User(id=created["id"], email=created["email"], role=created["role"], created_at=created["created_at"])
 
     def authenticate(self, db: Session, email: str, password: str) -> User:
         clean_email = email.strip().lower()
@@ -42,10 +42,10 @@ class PasswordAuthProvider:
         if not bcrypt.checkpw(password.encode(), user_row["password_hash"].encode()):
             raise AuthError("Invalid email or password", status_code=401)
 
-        return User(id=user_row["id"], email=user_row["email"], created_at=user_row["created_at"])
+        return User(id=user_row["id"], email=user_row["email"], role=user_row["role"], created_at=user_row["created_at"])
 
     def get_user_by_id(self, db: Session, user_id: str) -> Optional[User]:
         row = self._user_repo.get_by_id(db, user_id)
         if not row:
             return None
-        return User(id=row["id"], email=row["email"], created_at=row["created_at"])
+        return User(id=row["id"], email=row["email"], role=row["role"], created_at=row["created_at"])

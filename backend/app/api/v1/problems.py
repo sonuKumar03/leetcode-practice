@@ -87,7 +87,9 @@ def get_problem(problem_id: str, user: User = Depends(get_current_user)):
 
 @router.post("", response_model=ProblemOut, status_code=201)
 def add_problem(payload: ProblemCreate, user: User = Depends(get_current_user)):
-    """Add a new question (custom or LeetCode) to the database."""
+    """Add a new question (custom or LeetCode) to the database. Admin only."""
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can add problems")
     with get_db() as db:
         try:
             created = ProblemRepository.create_problem(

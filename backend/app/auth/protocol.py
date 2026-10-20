@@ -19,6 +19,7 @@ class AuthError(Exception):
 class User(BaseModel):
     id: str
     email: str
+    role: str = "user"
     created_at: datetime
 
 

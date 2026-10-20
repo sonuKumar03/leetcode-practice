@@ -14,7 +14,7 @@ class UserRepository:
         ).scalar_one_or_none()
         if not user:
             return None
-        return {"id": user.id, "email": user.email, "created_at": user.created_at}
+        return {"id": user.id, "email": user.email, "role": user.role, "created_at": user.created_at}
 
     @staticmethod
     def get_by_email(db: Session, email: str) -> Optional[Dict[str, Any]]:
@@ -27,6 +27,7 @@ class UserRepository:
         return {
             "id": user.id,
             "email": user.email,
+            "role": user.role,
             "password_hash": user.password_hash,
             "created_at": user.created_at,
         }
@@ -37,4 +38,4 @@ class UserRepository:
         user = User(id=user_id, email=clean_email, password_hash=password_hash)
         db.add(user)
         db.flush()
-        return {"id": user.id, "email": user.email, "created_at": user.created_at}
+        return {"id": user.id, "email": user.email, "role": user.role, "created_at": user.created_at}
