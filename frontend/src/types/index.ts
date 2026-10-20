@@ -45,7 +45,6 @@ export interface Stats {
   medium_solved: number;
   hard_total: number;
   hard_solved: number;
-  current_streak: number;
   tag_name?: string;
   tag_total?: number;
   tag_solved?: number;

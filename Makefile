@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install up down logs backend frontend test db-init sync clean
+.PHONY: help install up down logs backend frontend test db-init clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -18,7 +18,7 @@ down: ## Stop app containers
 logs: ## Follow container logs
 	docker compose logs -f
 
-backend: ## Run backend locally with live reload (port 8000)
+backend: ## Run backend locally (requires Postgres via docker compose)
 	cd backend && python3 run.py
 
 frontend: ## Run frontend locally with live reload (port 3000)
@@ -27,11 +27,8 @@ frontend: ## Run frontend locally with live reload (port 3000)
 test: ## Run backend test suite
 	python3 -m unittest discover -s backend/tests -p "test_*.py"
 
-db-init: ## Initialize SQLite database schema
-	python3 -c "import sys; sys.path.insert(0, 'backend'); from app.db.session import init_db; init_db(); print('✓ Database initialized')"
-
-sync: ## Fetch fresh data from external sources and sync into SQLite
-	PYTHONPATH=backend python3 -m app.cli sync
+db-init: ## Initialize Postgres schema via SQLAlchemy
+	PYTHONPATH=backend python3 -c "from app.db.session import init_db; init_db(); print('Done')"
 
 clean: ## Clean build artifacts and python cache
 	rm -rf frontend/dist

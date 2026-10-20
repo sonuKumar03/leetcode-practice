@@ -41,7 +41,6 @@ class StatsOut(BaseModel):
     medium_solved: int
     hard_total: int
     hard_solved: int
-    current_streak: int = 0
     tag_name: Optional[str] = None
     tag_total: Optional[int] = None
     tag_solved: Optional[int] = None

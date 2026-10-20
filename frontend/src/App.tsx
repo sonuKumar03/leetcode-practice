@@ -385,7 +385,6 @@ function MainTracker() {
           searchNotes={searchNotes}
           onToggleSearchNotes={() => setSearchNotes(!searchNotes)}
           searchInputRef={searchInputRef}
-          streak={stats?.current_streak}
         />
 
         {/* Filter Breadcrumb Chips */}

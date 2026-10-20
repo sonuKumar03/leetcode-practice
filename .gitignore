@@ -9,7 +9,7 @@ __pycache__/
 .venv/
 env/
 
-# SQLite temporary WAL
+# SQLite seed file artifacts
 *.db-wal
 *.db-shm
 

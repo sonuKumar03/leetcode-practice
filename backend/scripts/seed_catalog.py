@@ -1,6 +1,6 @@
 """Seed Postgres from the bundled leetcode.db SQLite file.
 
-Copies: tags, problems, problem_tags, problem_source_freq.
+Copies: tags, problems, problem_tags.
 Skips if the problems table already has data.
 Never touches users, sessions, or user_tracking.
 """
@@ -78,19 +78,6 @@ def seed(sqlite_path: str = str(SEED_DB_PATH)) -> None:
                 [dict(pt) for pt in ptags],
             )
             logger.info(f"Seeded {len(ptags)} problem-tag associations.")
-
-        # 4. Source frequencies
-        freqs = s_conn.execute("SELECT problem_id, source, frequency FROM problem_source_freq").fetchall()
-        if freqs:
-            db.execute(
-                text("""
-                    INSERT INTO problem_source_freq (problem_id, source, frequency)
-                    VALUES (:problem_id, :source, :frequency)
-                    ON CONFLICT (problem_id, source) DO UPDATE SET frequency = excluded.frequency
-                """),
-                [dict(f) for f in freqs],
-            )
-            logger.info(f"Seeded {len(freqs)} source frequencies.")
 
         db.commit()
         s_conn.close()

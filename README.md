@@ -1,90 +1,84 @@
-# LeetCode Practice Tracker & Scraper 🚀
+# LeetCode Practice Tracker
 
-A modern, modular LeetCode problem tracking web application built with **React, Vite, Tailwind CSS, FastAPI, and SQLite**.
+A LeetCode problem tracking web application built with **React 19, Vite, Tailwind CSS 4, FastAPI, SQLAlchemy, and PostgreSQL**.
 
 Curated directly from [leetcode.doocs.org/en/tags/](https://leetcode.doocs.org/en/tags/) and enriched with LeetCode's official metadata.
 
 ---
 
-## ✨ Features
+## Features
 
-- **k-Shortest Paths Spotlight**: Directly features the `#tag:k-shortest-paths` tag (including **#2045: Second Minimum Time to Reach Destination**) as a 1-click spotlight filter.
-- **Full Catalog (178 Tags, 4,000+ Problems)**: Browse, search, and filter problems across all algorithm categories (Shortest Path, Dijkstra, 0-1 BFS, Graph, Dynamic Programming, and more).
-- **SQLite Database Persistence**: All questions, tags, problem-tag mappings, and user progress (Status, Stars, Notes) are stored in `backend/data/leetcode.db` with WAL mode enabled.
-- **+ Add Custom Questions**: Easily add custom interview questions, company-specific problems, or newly released LeetCode questions via the interactive UI modal or REST API.
-- **Progress Tracking & Dashboard**:
-  - Interactive status toggle: **⚪ To Do** → **🟡 In Progress** → **🟢 Solved** (with celebratory confetti!).
-  - Star / bookmark problems for quick revision.
-  - Category / tag completion gauge (e.g. tracks % completed in `k-Shortest Paths`).
-  - Easy / Medium / Hard difficulty distribution breakdown.
-- **Personal Notes & Hints**: Write markdown/text intuition, time/space complexity, and code snippets per problem.
-- **Backup & Restore**: Export your progress as a timestamped JSON file and restore anytime.
+- **Full Catalog (178 Tags, 4,000+ Problems)**: Browse, search, and filter problems across all algorithm categories.
+- **Multi-User Auth**: Register / login with email and password (bcrypt + server-side sessions).
+- **Progress Tracking & Dashboard**: Status toggle (To Do / In Progress / Solved), star/bookmark, difficulty breakdown.
+- **Personal Notes**: Write intuition, complexity, and code snippets per problem.
 - **Dark & Light Mode**: Seamless theme toggle with system preference detection.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 leetcode-practice/
 ├── backend/
 │   ├── app/
-│   │   ├── api/             # Versioned REST API routers (/problems, /tags, /tracking, /stats)
-│   │   ├── db/              # SQLite connection session & schema.sql
-│   │   ├── models/          # Pydantic schemas (typed request/response validation)
-│   │   ├── repositories/    # Data Access Layer (DAL) isolating raw SQL queries
-│   │   ├── services/        # Scraper service & business domain logic
-│   │   └── main.py          # FastAPI application entry point
+│   │   ├── api/v1/          # Versioned REST API routers
+│   │   ├── auth/            # Auth provider, session store, dependencies
+│   │   ├── db/              # SQLAlchemy models, engine, session
+│   │   ├── models/          # Pydantic schemas
+│   │   ├── repositories/    # Data Access Layer (SQLAlchemy ORM)
+│   │   ├── services/        # Metadata service
+│   │   └── main.py          # FastAPI entry point
 │   ├── data/
-│   │   └── leetcode.db      # SQLite database
-│   ├── requirements.txt
-│   └── run.py               # Starts backend server on http://localhost:8000
+│   │   └── leetcode.db      # Bundled seed data (read-only SQLite)
+│   ├── scripts/
+│   │   └── seed_catalog.py  # Seeds Postgres from leetcode.db on first boot
+│   └── requirements.txt
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── api/             # Modular API clients (problemsApi, tagsApi)
-│   │   ├── components/
-│   │   │   ├── dashboard/   # StatsCards & Progress gauges
-│   │   │   ├── filters/     # TagFilterBar (spotlight chips), FilterControls
-│   │   │   ├── layout/      # Header, theme switcher
-│   │   │   ├── modals/      # AddQuestionModal, NotesModal, ExportImportModal
-│   │   │   └── problems/    # ProblemTable, StatusPill
-│   │   ├── types/           # TypeScript interfaces
-│   │   ├── App.tsx          # Main application orchestrator
-│   │   └── index.css        # Tailwind CSS entrypoint
-│   └── vite.config.ts       # Vite configuration with API proxy
+│   │   ├── api/             # API clients
+│   │   ├── components/      # React components
+│   │   ├── contexts/        # AuthContext
+│   │   └── App.tsx
+│   └── vite.config.ts
 │
-└── package.json
+├── docker-compose.yml       # Postgres 16 + app (dev)
+├── Dockerfile               # Multi-stage: frontend build + Python runner
+├── entrypoint.sh            # Schema init + seed + uvicorn
+└── fly.toml                 # Fly.io deployment config
 ```
 
 ---
 
-## 🚀 Quick Start
-
-### 1. Start the Backend API (FastAPI + SQLite)
+## Quick Start (Docker)
 
 ```bash
-cd backend
-python3 run.py
+make up        # Starts Postgres + app with hot reload
+make logs      # Follow container logs
 ```
-Backend runs at: `http://localhost:8000` (Swagger docs available at `http://localhost:8000/docs`).
 
-### 2. Start the Frontend (React + Vite)
+App runs at `http://localhost:8000` (API docs at `/docs`).
 
-In another terminal:
+### Local Development (without Docker)
+
+Requires a running Postgres instance. Set `DATABASE_URL` if not using the default (`postgresql://postgres:postgres@localhost:5432/leetcode`).
+
 ```bash
-cd frontend
-npm run dev
+# Terminal 1: Backend
+make backend
+
+# Terminal 2: Frontend
+make frontend
 ```
-Open your browser at: `http://localhost:5173`
 
 ---
 
-## 🔄 Re-scraping or Updating Questions
+## Useful Commands
 
-To refresh or re-run the scraper against `leetcode.doocs.org`:
 ```bash
-cd backend
-python3 -m app.services.scraper_service
+make install   # Install backend + frontend dependencies
+make test      # Run backend test suite
+make db-init   # Initialize Postgres schema
+make clean     # Clean build artifacts
 ```
-Or click the **Refresh** button directly in the web app header!

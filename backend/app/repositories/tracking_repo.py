@@ -1,7 +1,6 @@
-from datetime import date, timedelta
 from typing import Any, Dict, Optional
 
-from sqlalchemy import Date, case, cast, func, select, text
+from sqlalchemy import case, func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
@@ -96,39 +95,6 @@ class TrackingRepository:
         total = stats.get("total_problems", 0)
         solved = stats.get("solved_problems", 0)
         stats["completion_percentage"] = round((solved / total * 100), 1) if total > 0 else 0.0
-
-        activity_date = cast(UserTracking.updated_at, Date).label("activity_date")
-        streak_rows = db.execute(
-            select(activity_date)
-            .where(UserTracking.user_id == user_id, UserTracking.updated_at.isnot(None))
-            .distinct()
-            .order_by(activity_date.desc())
-            .limit(365)
-        ).mappings().all()
-
-        current_streak = 0
-        if streak_rows:
-            today = date.today()
-            expected = today
-            for row in streak_rows:
-                raw_d = row["activity_date"]
-                d = raw_d if isinstance(raw_d, date) else date.fromisoformat(str(raw_d))
-                if d == expected:
-                    current_streak += 1
-                    expected -= timedelta(days=1)
-                elif d < expected:
-                    break
-            if current_streak == 0:
-                expected = today - timedelta(days=1)
-                for row in streak_rows:
-                    raw_d = row["activity_date"]
-                    d = raw_d if isinstance(raw_d, date) else date.fromisoformat(str(raw_d))
-                    if d == expected:
-                        current_streak += 1
-                        expected -= timedelta(days=1)
-                    elif d < expected:
-                        break
-        stats["current_streak"] = current_streak
 
         if tag_slug:
             tag_row = db.execute(

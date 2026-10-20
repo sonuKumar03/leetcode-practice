@@ -67,6 +67,7 @@ def get_problems(
 @router.get("/lookup", response_model=MetadataLookupOut)
 def lookup_metadata(
     query: str = Query(..., description="Problem ID, Title slug, or LeetCode URL"),
+    user: User = Depends(get_current_user),
 ):
     """Auto-fill metadata (title, difficulty, url, algorithm tags, company tags) for a problem."""
     result = MetadataService.lookup_metadata(query)

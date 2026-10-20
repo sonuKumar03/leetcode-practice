@@ -9,7 +9,7 @@ import {
   Sun,
   Moon,
   Menu,
-  Flame,
+
   Keyboard,
   Check,
   ChevronDown,
@@ -48,7 +48,6 @@ interface TopHeaderProps {
   searchNotes?: boolean;
   onToggleSearchNotes?: () => void;
   searchInputRef?: React.Ref<HTMLInputElement>;
-  streak?: number;
 }
 
 const sortOptions = [
@@ -122,8 +121,7 @@ const OverflowMenu: React.FC<{
   onOpenAddModal: () => void;
   onOpenBackupModal: () => void;
   onOpenShortcuts: () => void;
-  onLogout: () => void;
-}> = ({ theme, onToggleTheme, onOpenAddModal, onOpenBackupModal, onOpenShortcuts, onLogout }) => {
+}> = ({ theme, onToggleTheme, onOpenAddModal, onOpenBackupModal, onOpenShortcuts }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -141,7 +139,6 @@ const OverflowMenu: React.FC<{
     { icon: DownloadCloud, label: 'Backup & Import', action: onOpenBackupModal },
     { icon: Keyboard, label: 'Keyboard Shortcuts', action: onOpenShortcuts, hint: '?' },
     { icon: theme === 'dark' ? Moon : Sun, label: theme === 'dark' ? 'Light Mode' : 'Dark Mode', action: onToggleTheme },
-    { icon: LogOut, label: 'Sign Out', action: onLogout, danger: true },
   ];
 
   return (
@@ -161,11 +158,7 @@ const OverflowMenu: React.FC<{
             <button
               key={item.label}
               onClick={() => { item.action(); setOpen(false); }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition cursor-pointer ${
-                item.danger
-                  ? 'text-red-500 hover:bg-red-500/10 border-t border-border mt-1'
-                  : 'text-text-muted hover:text-text-main hover:bg-surface-hover'
-              }`}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition cursor-pointer text-text-muted hover:text-text-main hover:bg-surface-hover"
             >
               <item.icon className="w-4 h-4 flex-shrink-0" />
               <span className="flex-1 text-left">{item.label}</span>
@@ -176,6 +169,49 @@ const OverflowMenu: React.FC<{
               )}
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ProfileMenu: React.FC<{ user: { email: string }; onLogout: () => void }> = ({ user, onLogout }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0 pl-2 border-l border-border">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-8 h-8 rounded-full bg-brand/20 text-brand font-semibold text-xs flex items-center justify-center uppercase select-none border border-brand/30 hover:border-brand/60 transition cursor-pointer"
+        aria-label="User menu"
+        aria-expanded={open}
+      >
+        {user.email.charAt(0)}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-60 bg-elevated border border-border rounded-xl shadow-xl py-1 animate-fade-in">
+          <div className="px-3 py-2.5 border-b border-border">
+            <p className="text-xs text-text-subtle">Signed in as</p>
+            <p className="text-sm text-text-main font-medium truncate">{user.email}</p>
+          </div>
+          <button
+            onClick={() => { onLogout(); setOpen(false); }}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition cursor-pointer"
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <span>Sign Out</span>
+          </button>
         </div>
       )}
     </div>
@@ -205,7 +241,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   searchNotes = false,
   onToggleSearchNotes,
   searchInputRef,
-  streak = 0,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
@@ -286,18 +321,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </>
           )}
 
-          {/* Streak Counter */}
-          {streak > 0 && (
-            <div
-              className="hidden sm:flex items-center gap-1.5 bg-surface border border-border rounded-xl px-2.5 py-1.5 text-sm"
-              title={`${streak}-day streak! Keep it up!`}
-            >
-              <Flame className="w-4 h-4 text-orange-500" />
-              <span className="font-bold text-orange-600 dark:text-orange-400 font-mono">{streak}</span>
-              <span className="text-text-subtle text-xs hidden md:inline">day streak</span>
-            </div>
-          )}
-
           {/* Overflow Menu: Add Question, Backup, Shortcuts, Theme, Logout */}
           <OverflowMenu
             theme={theme}
@@ -305,31 +328,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             onOpenAddModal={onOpenAddModal}
             onOpenBackupModal={onOpenBackupModal}
             onOpenShortcuts={onOpenShortcuts}
-            onLogout={logout}
           />
 
-          {/* User Profile & Quick Logout Button */}
-          {user && (
-            <div className="flex items-center gap-2 pl-2 border-l border-border">
-              <div
-                className="w-7 h-7 rounded-full bg-brand/20 text-brand font-semibold text-xs flex items-center justify-center uppercase select-none border border-brand/30"
-                title={user.email}
-              >
-                {user.email.charAt(0)}
-              </div>
-              <span className="hidden xl:inline text-xs text-text-muted font-medium truncate max-w-[120px]" title={user.email}>
-                {user.email}
-              </span>
-              <button
-                onClick={logout}
-                className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition cursor-pointer"
-                title="Log out"
-                aria-label="Log out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          {/* User Profile Avatar with Dropdown */}
+          {user && <ProfileMenu user={user} onLogout={logout} />}
         </div>
       </div>
 

@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from fastapi import HTTPException
 from app.api.router import api_router
-from app.api.sources import router as sources_router
+from app.auth.middleware import AuthMiddleware
 from app.db.session import init_db
 
 
@@ -41,8 +41,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(AuthMiddleware)
 app.include_router(api_router)
-app.include_router(sources_router, prefix="/api/v1")
 
 
 @app.get("/health")

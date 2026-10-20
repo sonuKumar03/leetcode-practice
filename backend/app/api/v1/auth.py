@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.auth.dependencies import get_current_user
 from app.auth.protocol import AuthError, LoginRequest, RegisterRequest, TokenResponse, User
@@ -7,7 +6,6 @@ from app.auth.service import auth_service
 from app.db.session import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-_bearer_scheme = HTTPBearer()
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -31,9 +29,10 @@ def login(request: LoginRequest):
 
 
 @router.post("/logout")
-def logout(credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme)):
+def logout(request: Request):
+    token = request.headers.get("authorization", "")[7:]
     with get_db() as db:
-        auth_service.logout(db, credentials.credentials)
+        auth_service.logout(db, token)
     return {"status": "ok"}
 
 

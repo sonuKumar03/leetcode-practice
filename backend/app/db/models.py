@@ -37,7 +37,6 @@ class Problem(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     tags = relationship("Tag", secondary="problem_tags", back_populates="problems", lazy="select")
-    source_freqs = relationship("ProblemSourceFreq", back_populates="problem", cascade="all, delete-orphan")
     tracking_entries = relationship("UserTracking", back_populates="problem", cascade="all, delete-orphan")
 
     __table_args__ = (
@@ -78,16 +77,6 @@ class ProblemTag(Base):
         Index("idx_problem_tags_tag", "tag_id"),
         Index("idx_problem_tags_tag_problem", "tag_id", "problem_id"),
     )
-
-
-class ProblemSourceFreq(Base):
-    __tablename__ = "problem_source_freq"
-
-    problem_id = Column(String, ForeignKey("problems.id", ondelete="CASCADE"), primary_key=True)
-    source = Column(String, primary_key=True)
-    frequency = Column(Integer, nullable=False, default=0)
-
-    problem = relationship("Problem", back_populates="source_freqs")
 
 
 class User(Base):
