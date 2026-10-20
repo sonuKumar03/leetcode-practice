@@ -89,17 +89,20 @@ def get_problem(problem_id: str, user: User = Depends(get_current_user)):
 def add_problem(payload: ProblemCreate, user: User = Depends(get_current_user)):
     """Add a new question (custom or LeetCode) to the database."""
     with get_db() as db:
-        created = ProblemRepository.create_problem(
-            db=db,
-            problem_id=payload.id,
-            title=payload.title,
-            difficulty=payload.difficulty,
-            tags=payload.tags,
-            company_tags=payload.company_tags,
-            leetcode_url=payload.leetcode_url,
-            doocs_url=payload.doocs_url,
-            notes=payload.notes,
-            source="custom",
-            user_id=user.id,
-        )
+        try:
+            created = ProblemRepository.create_problem(
+                db=db,
+                problem_id=payload.id,
+                title=payload.title,
+                difficulty=payload.difficulty,
+                tags=payload.tags,
+                company_tags=payload.company_tags,
+                leetcode_url=payload.leetcode_url,
+                doocs_url=payload.doocs_url,
+                notes=payload.notes,
+                source="custom",
+                user_id=user.id,
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=409, detail=str(e))
         return ProblemOut(**created)

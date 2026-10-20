@@ -29,20 +29,17 @@ class ProblemRepository:
         if not doocs_url and problem_id.isdigit():
             doocs_url = f"https://leetcode.doocs.org/en/lc/{problem_id}/"
 
-        stmt = pg_insert(Problem).values(
+        existing = db.execute(
+            select(Problem.id).where((Problem.id == problem_id) | (Problem.slug == slug))
+        ).first()
+        if existing:
+            raise ValueError(f"Problem '{problem_id}' already exists")
+
+        db.add(Problem(
             id=problem_id, title=title, slug=slug, difficulty=difficulty,
             paid_only=0, leetcode_url=leetcode_url, doocs_url=doocs_url, source=source,
-        ).on_conflict_do_update(
-            index_elements=["id"],
-            set_=dict(
-                title=text("EXCLUDED.title"),
-                slug=text("EXCLUDED.slug"),
-                difficulty=text("EXCLUDED.difficulty"),
-                leetcode_url=func.coalesce(text("EXCLUDED.leetcode_url"), Problem.leetcode_url),
-                doocs_url=func.coalesce(text("EXCLUDED.doocs_url"), Problem.doocs_url),
-            ),
-        )
-        db.execute(stmt)
+        ))
+        db.flush()
 
         if tags:
             for tag_name in tags:
