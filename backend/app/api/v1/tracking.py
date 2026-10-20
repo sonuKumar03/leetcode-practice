@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.auth.dependencies import get_current_user
 from app.auth.protocol import User
-from app.db.session import get_db_connection
+from app.db.session import get_db
 from app.models.tracking import TrackingUpdate, TrackingOut, BatchTrackingRequest, BatchTrackingOut
 from app.repositories.tracking_repo import TrackingRepository
 from app.repositories.problem_repo import ProblemRepository
@@ -15,13 +15,13 @@ def update_problem_tracking(
     user: User = Depends(get_current_user),
 ):
     """Update status (todo/in_progress/solved), star bookmark, or personal notes."""
-    with get_db_connection() as conn:
-        prob = ProblemRepository.get_by_id(conn, problem_id, user_id=user.id)
+    with get_db() as db:
+        prob = ProblemRepository.get_by_id(db, problem_id, user_id=user.id)
         if not prob:
             raise HTTPException(status_code=404, detail="Problem not found")
 
         updated = TrackingRepository.upsert_tracking(
-            conn=conn,
+            db=db,
             user_id=user.id,
             problem_id=problem_id,
             status=payload.status,
@@ -43,11 +43,11 @@ def batch_update_tracking(
     user: User = Depends(get_current_user),
 ):
     """Batch update tracking for multiple problems in a single transaction."""
-    with get_db_connection() as conn:
+    with get_db() as db:
         count = 0
         for item in payload.items:
             TrackingRepository.upsert_tracking(
-                conn=conn,
+                db=db,
                 user_id=user.id,
                 problem_id=item.id,
                 status=item.status,
@@ -56,4 +56,3 @@ def batch_update_tracking(
             )
             count += 1
         return BatchTrackingOut(updated=count)
-

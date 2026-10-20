@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from app.adapters.registry import AdapterRegistry
 from app.adapters.base import RawProblemItem
 from app.repositories.problem_repo import ProblemRepository
-from app.db.session import get_db_connection
+from app.db.session import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class SyncPipelineService:
     }
 
     def __init__(self, conn_factory: Optional[Callable] = None):
-        self.conn_factory = conn_factory or get_db_connection
+        self.conn_factory = conn_factory or get_db
 
     @classmethod
     def is_running(cls) -> bool:
@@ -34,12 +34,8 @@ class SyncPipelineService:
 
     @contextmanager
     def _resolve_connection(self):
-        cm_or_conn = self.conn_factory()
-        if hasattr(cm_or_conn, "__enter__") and not hasattr(cm_or_conn, "cursor"):
-            with cm_or_conn as conn:
-                yield conn
-        else:
-            yield cm_or_conn
+        with self.conn_factory() as conn:
+            yield conn
 
     @staticmethod
     def _aggregate(items) -> tuple:

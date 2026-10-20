@@ -1,4 +1,5 @@
-from typing import Optional, Literal
+from datetime import datetime
+from typing import Optional, Literal, Union
 from pydantic import BaseModel
 
 StatusType = Literal["todo", "in_progress", "solved"]
@@ -13,7 +14,7 @@ class TrackingOut(BaseModel):
     status: StatusType = "todo"
     is_starred: bool = False
     notes: str = ""
-    updated_at: Optional[str] = None
+    updated_at: Optional[Union[str, datetime]] = None
 
 class BatchTrackingItem(BaseModel):
     id: str

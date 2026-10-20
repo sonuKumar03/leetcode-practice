@@ -1,21 +1,24 @@
-import re
-import urllib.request
 import json
 import logging
-import sqlite3
-from typing import Dict, Any, Optional, List
+import re
+import urllib.request
+from typing import Any, Dict, List, Optional
+
 from bs4 import BeautifulSoup
+from sqlalchemy import func, select
+
 from app.config import LEETCODE_API_URL
-from app.db.session import get_db_connection
+from app.db.models import Problem, ProblemTag, Tag
+from app.db.session import get_db
 
 logger = logging.getLogger(__name__)
+
 
 class MetadataService:
     _lc_cache: Optional[Dict[str, Any]] = None
 
     @classmethod
     def _get_leetcode_all_cache(cls) -> Dict[str, Any]:
-        """Fetch and cache LeetCode official problem list in-memory."""
         if cls._lc_cache is not None:
             return cls._lc_cache
 
@@ -23,14 +26,14 @@ class MetadataService:
         try:
             req = urllib.request.Request(
                 LEETCODE_API_URL,
-                headers={"User-Agent": "Mozilla/5.0"}
+                headers={"User-Agent": "Mozilla/5.0"},
             )
             with urllib.request.urlopen(req, timeout=10) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             diff_map = {1: "Easy", 2: "Medium", 3: "Hard"}
-            by_id = {}
-            by_slug = {}
+            by_id: Dict[str, Any] = {}
+            by_slug: Dict[str, Any] = {}
 
             for item in data.get("stat_status_pairs", []):
                 stat = item.get("stat", {})
@@ -59,7 +62,6 @@ class MetadataService:
 
     @staticmethod
     def _fetch_doocs_tags(problem_id: str) -> List[str]:
-        """Fetch algorithm tags from Doocs wiki page if available."""
         if not problem_id.isdigit():
             return []
         try:
@@ -67,19 +69,16 @@ class MetadataService:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=4) as resp:
                 soup = BeautifulSoup(resp.read().decode("utf-8", errors="ignore"), "html.parser")
-            
+
             raw_tags = [
                 a.get_text(strip=True)
                 for a in soup.find_all("a", href=lambda x: x and "/tags/" in x)
             ]
-            # Exclude non-topic tags
             exclude = {"focused training", "leetcode", "tags"}
-            clean_tags = [t for t in raw_tags if t.lower() not in exclude]
-            # Deduplicate maintaining order
-            seen = set()
-            out = []
-            for t in clean_tags:
-                if t not in seen:
+            seen: set = set()
+            out: List[str] = []
+            for t in raw_tags:
+                if t.lower() not in exclude and t not in seen:
                     seen.add(t)
                     out.append(t)
             return out
@@ -92,39 +91,32 @@ class MetadataService:
         if not clean_q:
             return None
 
-        # Check if URL
-        url_match = re.search(r'leetcode\.com/problems/([^/?#]+)', clean_q)
+        url_match = re.search(r"leetcode\.com/problems/([^/?#]+)", clean_q)
         target_slug = url_match.group(1) if url_match else None
         target_id = clean_q if clean_q.isdigit() else None
         if not target_id and not target_slug:
             target_slug = clean_q.lower()
 
-        # Step 1: Check local SQLite database first
-        with get_db_connection() as conn:
+        with get_db() as db:
             if target_id:
-                row = conn.execute(
-                    "SELECT id, title, slug, difficulty, leetcode_url FROM problems WHERE id = ?",
-                    (target_id,)
-                ).fetchone()
+                row = db.execute(
+                    select(Problem.id, Problem.title, Problem.slug, Problem.difficulty, Problem.leetcode_url)
+                    .where(Problem.id == target_id)
+                ).mappings().first()
             else:
-                row = conn.execute(
-                    "SELECT id, title, slug, difficulty, leetcode_url FROM problems WHERE slug = ? OR LOWER(title) = ?",
-                    (target_slug, target_slug)
-                ).fetchone()
+                row = db.execute(
+                    select(Problem.id, Problem.title, Problem.slug, Problem.difficulty, Problem.leetcode_url)
+                    .where((Problem.slug == target_slug) | (func.lower(Problem.title) == target_slug))
+                ).mappings().first()
 
             if row:
                 pid = row["id"]
-                # Fetch topic tags & company tags
-                tag_rows = conn.execute(
-                    """
-                    SELECT t.name, COALESCE(t.type, 'topic') as type
-                    FROM problem_tags pt
-                    JOIN tags t ON pt.tag_id = t.id
-                    WHERE pt.problem_id = ?
-                    ORDER BY t.name ASC
-                    """,
-                    (pid,)
-                ).fetchall()
+                tag_rows = db.execute(
+                    select(Tag.name, func.coalesce(Tag.type, "topic").label("type"))
+                    .join(ProblemTag, ProblemTag.tag_id == Tag.id)
+                    .where(ProblemTag.problem_id == pid)
+                    .order_by(Tag.name.asc())
+                ).mappings().all()
 
                 topic_tags = [r["name"] for r in tag_rows if r["type"] != "company"]
                 company_tags = [r["name"] for r in tag_rows if r["type"] == "company"]
@@ -139,7 +131,6 @@ class MetadataService:
                     "source": "database",
                 }
 
-        # Step 2: Fallback to LeetCode official catalog
         lc_cache = cls._get_leetcode_all_cache()
         lc_record = None
         if target_id and target_id in lc_cache.get("by_id", {}):
@@ -149,23 +140,17 @@ class MetadataService:
 
         if lc_record:
             pid = lc_record["id"]
-            # Scrape algorithm tags from Doocs Wiki
             tags = cls._fetch_doocs_tags(pid)
 
-            # Check if any companies matched in local DB
             company_tags = []
-            with get_db_connection() as conn:
-                tag_rows = conn.execute(
-                    """
-                    SELECT t.name
-                    FROM problem_tags pt
-                    JOIN tags t ON pt.tag_id = t.id
-                    WHERE pt.problem_id = ? AND t.type = 'company'
-                    ORDER BY t.name ASC
-                    """,
-                    (pid,)
-                ).fetchall()
-                company_tags = [r["name"] for r in tag_rows]
+            with get_db() as db:
+                tag_rows = db.execute(
+                    select(Tag.name)
+                    .join(ProblemTag, ProblemTag.tag_id == Tag.id)
+                    .where(ProblemTag.problem_id == pid, Tag.type == "company")
+                    .order_by(Tag.name.asc())
+                ).scalars().all()
+                company_tags = list(tag_rows)
 
             return {
                 "id": pid,

@@ -1,4 +1,5 @@
-from typing import List, Optional, Literal
+from datetime import datetime
+from typing import List, Optional, Literal, Union
 from pydantic import BaseModel, Field
 
 DifficultyType = Literal["Easy", "Medium", "Hard", "Unknown"]
@@ -30,7 +31,7 @@ class ProblemOut(ProblemBase):
     status: StatusType = "todo"
     is_starred: bool = False
     notes: str = ""
-    updated_at: Optional[str] = None
+    updated_at: Optional[Union[str, datetime]] = None
 
 class ProblemListResponse(BaseModel):
     items: List[ProblemOut]

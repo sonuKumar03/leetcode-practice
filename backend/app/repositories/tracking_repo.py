@@ -1,107 +1,128 @@
-import sqlite3
-from typing import Optional, Dict, Any
+from datetime import date, timedelta
+from typing import Any, Dict, Optional
+
+from sqlalchemy import Date, case, cast, func, select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.orm import Session
+
+from app.db.models import Problem, ProblemTag, Tag, UserTracking
+
 
 class TrackingRepository:
     @staticmethod
     def upsert_tracking(
-        conn: sqlite3.Connection,
+        db: Session,
         user_id: str,
         problem_id: str,
         status: Optional[str] = None,
         is_starred: Optional[bool] = None,
         notes: Optional[str] = None,
     ) -> Dict[str, Any]:
-        existing = conn.execute(
-            "SELECT * FROM user_tracking WHERE user_id = ? AND problem_id = ?",
-            (user_id, problem_id),
-        ).fetchone()
+        existing = db.execute(
+            select(UserTracking).where(
+                UserTracking.user_id == user_id,
+                UserTracking.problem_id == problem_id,
+            )
+        ).scalar_one_or_none()
 
-        curr_status = existing["status"] if existing else "todo"
-        curr_starred = bool(existing["is_starred"]) if existing else False
-        curr_notes = existing["notes"] if existing else ""
+        curr_status = existing.status if existing else "todo"
+        curr_starred = bool(existing.is_starred) if existing else False
+        curr_notes = existing.notes if existing else ""
 
         new_status = status if status is not None else curr_status
         new_starred = int(is_starred) if is_starred is not None else int(curr_starred)
         new_notes = notes if notes is not None else curr_notes
 
-        conn.execute(
-            """
-            INSERT INTO user_tracking (user_id, problem_id, status, is_starred, notes, updated_at)
-            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(user_id, problem_id) DO UPDATE SET
-                status = excluded.status,
-                is_starred = excluded.is_starred,
-                notes = excluded.notes,
-                updated_at = CURRENT_TIMESTAMP
-            """,
-            (user_id, problem_id, new_status, new_starred, new_notes),
+        stmt = pg_insert(UserTracking).values(
+            user_id=user_id,
+            problem_id=problem_id,
+            status=new_status,
+            is_starred=new_starred,
+            notes=new_notes,
+        ).on_conflict_do_update(
+            index_elements=["user_id", "problem_id"],
+            set_=dict(
+                status=text("EXCLUDED.status"),
+                is_starred=text("EXCLUDED.is_starred"),
+                notes=text("EXCLUDED.notes"),
+                updated_at=func.now(),
+            ),
         )
+        db.execute(stmt)
+        db.flush()
 
-        row = conn.execute(
-            "SELECT * FROM user_tracking WHERE user_id = ? AND problem_id = ?",
-            (user_id, problem_id),
-        ).fetchone()
-        return dict(row)
+        row = db.execute(
+            select(UserTracking).where(
+                UserTracking.user_id == user_id,
+                UserTracking.problem_id == problem_id,
+            )
+        ).scalar_one()
+        return {
+            "user_id": row.user_id,
+            "problem_id": row.problem_id,
+            "status": row.status,
+            "is_starred": row.is_starred,
+            "notes": row.notes,
+            "updated_at": row.updated_at,
+        }
 
     @staticmethod
     def get_stats(
-        conn: sqlite3.Connection,
+        db: Session,
         user_id: str,
         tag_slug: Optional[str] = None,
     ) -> Dict[str, Any]:
-        # Overall counts
-        overall_row = conn.execute(
-            """
-            SELECT 
-                COUNT(p.id) as total_problems,
-                COUNT(CASE WHEN ut.status = 'solved' THEN 1 END) as solved_problems,
-                COUNT(CASE WHEN ut.status = 'in_progress' THEN 1 END) as in_progress_problems,
-                COUNT(CASE WHEN ut.status IS NULL OR ut.status = 'todo' THEN 1 END) as todo_problems,
-                COUNT(CASE WHEN ut.is_starred = 1 THEN 1 END) as starred_problems,
-                COUNT(CASE WHEN p.difficulty = 'Easy' THEN 1 END) as easy_total,
-                COUNT(CASE WHEN p.difficulty = 'Easy' AND ut.status = 'solved' THEN 1 END) as easy_solved,
-                COUNT(CASE WHEN p.difficulty = 'Medium' THEN 1 END) as medium_total,
-                COUNT(CASE WHEN p.difficulty = 'Medium' AND ut.status = 'solved' THEN 1 END) as medium_solved,
-                COUNT(CASE WHEN p.difficulty = 'Hard' THEN 1 END) as hard_total,
-                COUNT(CASE WHEN p.difficulty = 'Hard' AND ut.status = 'solved' THEN 1 END) as hard_solved
-            FROM problems p
-            LEFT JOIN user_tracking ut ON p.id = ut.problem_id AND ut.user_id = ?
-        """,
-            (user_id,),
-        ).fetchone()
+        p = Problem.__table__
+        ut = UserTracking.__table__.alias("ut")
+        join = p.outerjoin(ut, (p.c.id == ut.c.problem_id) & (ut.c.user_id == user_id))
 
-        stats = dict(overall_row)
-        total = stats["total_problems"]
-        solved = stats["solved_problems"]
+        overall = db.execute(
+            select(
+                func.count(p.c.id).label("total_problems"),
+                func.count(case((ut.c.status == "solved", 1))).label("solved_problems"),
+                func.count(case((ut.c.status == "in_progress", 1))).label("in_progress_problems"),
+                func.count(case(((ut.c.status.is_(None)) | (ut.c.status == "todo"), 1))).label("todo_problems"),
+                func.count(case((ut.c.is_starred == 1, 1))).label("starred_problems"),
+                func.count(case((p.c.difficulty == "Easy", 1))).label("easy_total"),
+                func.count(case(((p.c.difficulty == "Easy") & (ut.c.status == "solved"), 1))).label("easy_solved"),
+                func.count(case((p.c.difficulty == "Medium", 1))).label("medium_total"),
+                func.count(case(((p.c.difficulty == "Medium") & (ut.c.status == "solved"), 1))).label("medium_solved"),
+                func.count(case((p.c.difficulty == "Hard", 1))).label("hard_total"),
+                func.count(case(((p.c.difficulty == "Hard") & (ut.c.status == "solved"), 1))).label("hard_solved"),
+            ).select_from(join)
+        ).mappings().first()
+
+        stats = dict(overall) if overall else {}
+        total = stats.get("total_problems", 0)
+        solved = stats.get("solved_problems", 0)
         stats["completion_percentage"] = round((solved / total * 100), 1) if total > 0 else 0.0
 
-        # Calculate current streak (consecutive days with activity)
-        streak_rows = conn.execute(
-            """
-            SELECT DISTINCT date(updated_at) as activity_date
-            FROM user_tracking
-            WHERE user_id = ? AND updated_at IS NOT NULL
-            ORDER BY activity_date DESC
-        """,
-            (user_id,),
-        ).fetchall()
+        activity_date = cast(UserTracking.updated_at, Date).label("activity_date")
+        streak_rows = db.execute(
+            select(activity_date)
+            .where(UserTracking.user_id == user_id, UserTracking.updated_at.isnot(None))
+            .distinct()
+            .order_by(activity_date.desc())
+            .limit(365)
+        ).mappings().all()
+
         current_streak = 0
         if streak_rows:
-            from datetime import date, timedelta
             today = date.today()
             expected = today
             for row in streak_rows:
-                d = date.fromisoformat(row["activity_date"])
+                raw_d = row["activity_date"]
+                d = raw_d if isinstance(raw_d, date) else date.fromisoformat(str(raw_d))
                 if d == expected:
                     current_streak += 1
                     expected -= timedelta(days=1)
                 elif d < expected:
                     break
-            # If no activity today, check if yesterday starts the streak
-            if current_streak == 0 and streak_rows:
+            if current_streak == 0:
                 expected = today - timedelta(days=1)
                 for row in streak_rows:
-                    d = date.fromisoformat(row["activity_date"])
+                    raw_d = row["activity_date"]
+                    d = raw_d if isinstance(raw_d, date) else date.fromisoformat(str(raw_d))
                     if d == expected:
                         current_streak += 1
                         expected -= timedelta(days=1)
@@ -110,25 +131,24 @@ class TrackingRepository:
         stats["current_streak"] = current_streak
 
         if tag_slug:
-            tag_row = conn.execute(
-                """
-                SELECT 
-                    t.name as tag_name,
-                    COUNT(p.id) as tag_total,
-                    COUNT(CASE WHEN ut.status = 'solved' THEN 1 END) as tag_solved
-                FROM tags t
-                JOIN problem_tags pt ON t.id = pt.tag_id
-                JOIN problems p ON pt.problem_id = p.id
-                LEFT JOIN user_tracking ut ON p.id = ut.problem_id AND ut.user_id = ?
-                WHERE t.slug = ?
-                GROUP BY t.id
-            """,
-                (user_id, tag_slug),
-            ).fetchone()
+            tag_row = db.execute(
+                select(
+                    Tag.name.label("tag_name"),
+                    func.count(Problem.id).label("tag_total"),
+                    func.count(case((ut.c.status == "solved", 1))).label("tag_solved"),
+                )
+                .select_from(
+                    Tag.__table__
+                    .join(ProblemTag.__table__, Tag.id == ProblemTag.tag_id)
+                    .join(Problem.__table__, ProblemTag.problem_id == Problem.id)
+                    .outerjoin(ut, (Problem.id == ut.c.problem_id) & (ut.c.user_id == user_id))
+                )
+                .where(Tag.slug == tag_slug)
+                .group_by(Tag.id)
+            ).mappings().first()
             if tag_row:
                 stats["tag_name"] = tag_row["tag_name"]
                 stats["tag_total"] = tag_row["tag_total"]
                 stats["tag_solved"] = tag_row["tag_solved"]
 
         return stats
-

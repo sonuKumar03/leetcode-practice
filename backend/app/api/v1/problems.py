@@ -2,7 +2,7 @@ from typing import Optional
 
 from app.auth.dependencies import get_current_user
 from app.auth.protocol import User
-from app.db.session import get_db_connection
+from app.db.session import get_db
 from app.models.problem import (
     MetadataLookupOut,
     ProblemCreate,
@@ -39,9 +39,9 @@ def get_problems(
     page_size: int = Query(50, ge=1, le=200),
     user: User = Depends(get_current_user),
 ):
-    with get_db_connection() as conn:
+    with get_db() as db:
         items, total = ProblemRepository.list_problems(
-            conn=conn,
+            db=db,
             user_id=user.id,
             tag=tag,
             difficulty=difficulty,
@@ -77,8 +77,8 @@ def lookup_metadata(
 
 @router.get("/{problem_id}", response_model=ProblemOut)
 def get_problem(problem_id: str, user: User = Depends(get_current_user)):
-    with get_db_connection() as conn:
-        problem = ProblemRepository.get_by_id(conn, problem_id, user_id=user.id)
+    with get_db() as db:
+        problem = ProblemRepository.get_by_id(db, problem_id, user_id=user.id)
         if not problem:
             raise HTTPException(status_code=404, detail="Problem not found")
         return ProblemOut(**problem)
@@ -86,10 +86,10 @@ def get_problem(problem_id: str, user: User = Depends(get_current_user)):
 
 @router.post("", response_model=ProblemOut, status_code=201)
 def add_problem(payload: ProblemCreate, user: User = Depends(get_current_user)):
-    """Add a new question (custom or LeetCode) to the SQLite database."""
-    with get_db_connection() as conn:
+    """Add a new question (custom or LeetCode) to the database."""
+    with get_db() as db:
         created = ProblemRepository.create_problem(
-            conn=conn,
+            db=db,
             problem_id=payload.id,
             title=payload.title,
             difficulty=payload.difficulty,

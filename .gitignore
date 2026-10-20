@@ -13,5 +13,15 @@ env/
 *.db-wal
 *.db-shm
 
+# IDE / editor
+.vscode/
+
+# Claude Code
+.claude/
+.agents/
+
+# Misc
+frontend/snap.txt
+
 # Mac
 .DS_Store

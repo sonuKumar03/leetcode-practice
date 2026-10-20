@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from app.auth.dependencies import get_current_user
 from app.auth.protocol import User
-from app.db.session import get_db_connection
+from app.db.session import get_db
 from app.models.tracking import StatsOut
 from app.repositories.tracking_repo import TrackingRepository
 
@@ -14,7 +14,6 @@ def get_stats(
     user: User = Depends(get_current_user),
 ):
     """Get overall completion statistics and tag-scoped statistics."""
-    with get_db_connection() as conn:
-        stats = TrackingRepository.get_stats(conn, user_id=user.id, tag_slug=tag)
+    with get_db() as db:
+        stats = TrackingRepository.get_stats(db, user_id=user.id, tag_slug=tag)
         return StatsOut(**stats)
-

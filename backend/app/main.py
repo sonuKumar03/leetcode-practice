@@ -20,7 +20,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
     title="LeetCode Practice Tracker API",
-    description="Modular API for scraping and tracking LeetCode problems with SQLite",
+    description="Modular API for scraping and tracking LeetCode problems",
     version="1.0.0",
 )
 
