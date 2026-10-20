@@ -6,9 +6,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from fastapi import HTTPException
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
 from app.api.router import api_router
 from app.auth.middleware import AuthMiddleware
 from app.db.session import init_db
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
@@ -41,6 +47,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(AuthMiddleware)
 app.include_router(api_router)
 
