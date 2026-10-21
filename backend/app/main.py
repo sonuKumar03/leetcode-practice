@@ -8,14 +8,14 @@ from slowapi.util import get_remote_address
 
 from app.api.router import api_router
 from app.auth.middleware import AuthMiddleware
-from app.db.session import init_db
+from app.db.session import run_migrations
 
 limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    init_db()
+    run_migrations()
     yield
 
 

@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from typing import Optional
 
-from sqlalchemy import delete, func, select, text
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.orm import Session
 
 from app.db.models import Session as DBSession
@@ -40,12 +40,19 @@ class SessionRepository:
 
     @staticmethod
     def get_user_id(db: Session, session_token: str) -> Optional[str]:
+        hashed = _hash_token(session_token)
         row = db.execute(
             select(DBSession.user_id).where(
-                DBSession.id == _hash_token(session_token),
-                DBSession.created_at > func.now() - text("INTERVAL '7 days'"),
+                DBSession.id == hashed,
+                DBSession.last_active > func.now() - text("INTERVAL '7 days'"),
             )
         ).scalar_one_or_none()
+        if row:
+            db.execute(
+                update(DBSession)
+                .where(DBSession.id == hashed)
+                .values(last_active=func.now())
+            )
         return row
 
     @staticmethod
@@ -60,6 +67,6 @@ class SessionRepository:
     def cleanup_expired(db: Session) -> None:
         db.execute(
             delete(DBSession).where(
-                DBSession.created_at <= func.now() - text("INTERVAL '7 days'")
+                DBSession.last_active <= func.now() - text("INTERVAL '7 days'")
             )
         )
