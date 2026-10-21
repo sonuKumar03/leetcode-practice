@@ -262,7 +262,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const solvedPct = stats ? stats.completion_percentage : 0;
 
   return (
-    <header className="bg-header/90 backdrop-blur-md border-b border-border px-4 sm:px-6 py-3 space-y-3 sticky top-0 z-20 select-none transition-colors">
+    <header className="bg-header/90 backdrop-blur-md border-b border-border px-4 sm:px-6 py-3 space-y-3 sticky top-0 z-30 select-none transition-colors">
       {/* Top Level: Focused Title & Global Action Buttons */}
       <div className="flex items-center justify-between gap-4">
         {/* Title & Active Category Indicator */}
