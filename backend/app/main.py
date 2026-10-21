@@ -1,11 +1,7 @@
 import os
-from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
-from fastapi import HTTPException
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -56,32 +52,4 @@ app.include_router(api_router)
 @app.get("/health")
 def health_check():
     return {"status": "ok", "app": "LeetCode Tracker API"}
-
-# Mount frontend production build if available
-FRONTEND_DIST = os.environ.get(
-    "FRONTEND_DIST",
-    str(Path(__file__).resolve().parent.parent.parent / "frontend" / "dist")
-)
-
-if os.path.exists(FRONTEND_DIST):
-    assets_dir = os.path.join(FRONTEND_DIST, "assets")
-    if os.path.exists(assets_dir):
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
-    # Canonical static root; containment checks below must use realpath.
-    STATIC_ROOT = os.path.realpath(FRONTEND_DIST)
-
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        # Don't intercept API or docs routes
-        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
-            raise HTTPException(status_code=404, detail="Not found")
-        # Resolve the target and require it to stay inside STATIC_ROOT.
-        # This blocks path traversal ("..", "%2e%2e", etc.) outside the dist dir.
-        file_path = os.path.realpath(os.path.join(STATIC_ROOT, full_path))
-        if not (file_path == STATIC_ROOT or file_path.startswith(STATIC_ROOT + os.sep)):
-            raise HTTPException(status_code=404, detail="Not found")
-        if full_path and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(STATIC_ROOT, "index.html"))
 

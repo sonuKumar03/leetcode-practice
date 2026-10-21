@@ -141,19 +141,6 @@ class TestSecurity(unittest.TestCase):
         self.assertEqual(self.client.post("/api/v1/auth/logout", headers=h).status_code, 200)
         self.assertEqual(self.client.get("/api/v1/auth/me", headers=h).status_code, 401)
 
-    # --- Path traversal ---
-
-    def test_path_traversal_blocked(self):
-        r = self.client.get("/../../etc/passwd")
-        self.assertIn(r.status_code, (404, 200))
-        if r.status_code == 200:
-            self.assertNotIn("root:", r.text)
-
-    def test_encoded_path_traversal_blocked(self):
-        r = self.client.get("/..%2F..%2Fetc%2Fpasswd")
-        self.assertIn(r.status_code, (404, 200))
-        if r.status_code == 200:
-            self.assertNotIn("root:", r.text)
 
 
 if __name__ == "__main__":
