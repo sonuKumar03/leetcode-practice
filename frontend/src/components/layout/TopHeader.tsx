@@ -121,7 +121,8 @@ const OverflowMenu: React.FC<{
   onOpenAddModal: () => void;
   onOpenBackupModal: () => void;
   onOpenShortcuts: () => void;
-}> = ({ theme, onToggleTheme, onOpenAddModal, onOpenBackupModal, onOpenShortcuts }) => {
+  isAdmin: boolean;
+}> = ({ theme, onToggleTheme, onOpenAddModal, onOpenBackupModal, onOpenShortcuts, isAdmin }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -135,7 +136,7 @@ const OverflowMenu: React.FC<{
   }, [open]);
 
   const items = [
-    { icon: Plus, label: 'Add Question', action: onOpenAddModal },
+    ...(isAdmin ? [{ icon: Plus, label: 'Add Question', action: onOpenAddModal }] : []),
     { icon: DownloadCloud, label: 'Backup & Import', action: onOpenBackupModal },
     { icon: Keyboard, label: 'Keyboard Shortcuts', action: onOpenShortcuts, hint: '?' },
     { icon: theme === 'dark' ? Moon : Sun, label: theme === 'dark' ? 'Light Mode' : 'Dark Mode', action: onToggleTheme },
@@ -328,6 +329,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             onOpenAddModal={onOpenAddModal}
             onOpenBackupModal={onOpenBackupModal}
             onOpenShortcuts={onOpenShortcuts}
+            isAdmin={user?.role === 'admin'}
           />
 
           {/* User Profile Avatar with Dropdown */}

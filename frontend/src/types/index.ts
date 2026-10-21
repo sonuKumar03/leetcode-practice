@@ -4,6 +4,7 @@ export type Status = 'todo' | 'in_progress' | 'solved';
 export interface User {
   id: string;
   email: string;
+  role: string;
   created_at: string;
 }
 

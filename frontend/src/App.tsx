@@ -20,7 +20,9 @@ function MainTracker() {
   const mainRef = useRef<HTMLElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
   const url = useUrlParams();
+  const isAdmin = user?.role === 'admin';
 
   // Main data state
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -438,7 +440,7 @@ function MainTracker() {
               setActiveView('all');
               setPage(1);
             }}
-            onAddQuestion={() => setIsAddModalOpen(true)}
+            onAddQuestion={isAdmin ? () => setIsAddModalOpen(true) : undefined}
             companyNames={companyNames}
             tagSlugMap={tagSlugMap}
           />
