@@ -42,25 +42,11 @@ leetcode-practice/
 │   │   ├── contexts/        # AuthContext
 │   │   └── App.tsx
 │   └── vite.config.ts
-│
-├── docker-compose.yml       # Postgres 16 + app (dev)
-├── Dockerfile               # Multi-stage: frontend build + Python runner
-├── entrypoint.sh            # Schema init + seed + uvicorn
-└── fly.toml                 # Fly.io deployment config
 ```
 
 ---
 
-## Quick Start (Docker)
-
-```bash
-make up        # Starts Postgres + app with hot reload
-make logs      # Follow container logs
-```
-
-App runs at `http://localhost:8000` (API docs at `/docs`).
-
-### Local Development (without Docker)
+## Local Development
 
 Requires a running Postgres instance. Set `DATABASE_URL` if not using the default (`postgresql://postgres:postgres@localhost:5432/leetcode`).
 
@@ -71,6 +57,8 @@ make backend
 # Terminal 2: Frontend
 make frontend
 ```
+
+App runs at `http://localhost:3000` (API docs at `http://localhost:8000/docs`).
 
 ---
 
