@@ -7,14 +7,30 @@ from sqlalchemy.orm import Session
 from app.db.models import Session as DBSession
 
 SESSION_MAX_AGE_DAYS = 7
+MAX_SESSIONS_PER_USER = 10
 
 
 class SessionRepository:
     @staticmethod
     def create_session(db: Session, user_id: str) -> str:
+        SessionRepository.cleanup_expired(db)
+
         session_token = secrets.token_urlsafe(32)
         db.add(DBSession(id=session_token, user_id=user_id))
         db.flush()
+
+        # Evict oldest sessions beyond the per-user cap.
+        oldest_to_keep = db.execute(
+            select(DBSession.id)
+            .where(DBSession.user_id == user_id)
+            .order_by(DBSession.created_at.desc())
+            .offset(MAX_SESSIONS_PER_USER)
+        ).scalars().all()
+        if oldest_to_keep:
+            db.execute(
+                delete(DBSession).where(DBSession.id.in_(oldest_to_keep))
+            )
+
         return session_token
 
     @staticmethod

@@ -34,8 +34,11 @@ def login(request: Request, payload: LoginRequest):
 
 
 @router.post("/logout")
-def logout(request: Request):
-    token = request.headers.get("authorization", "")[7:]
+def logout(request: Request, user: User = Depends(get_current_user)):
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    token = auth_header[7:]
     with get_db() as db:
         auth_service.logout(db, token)
     return {"status": "ok"}
