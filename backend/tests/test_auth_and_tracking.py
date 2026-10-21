@@ -1,5 +1,6 @@
 import unittest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from app.main import app
 from app.db.session import init_db, get_db_connection
 
@@ -11,7 +12,7 @@ class TestAuthAndTracking(unittest.TestCase):
 
     def tearDown(self):
         with get_db_connection() as conn:
-            conn.execute("DELETE FROM users WHERE email LIKE '%@authtest.com'")
+            conn.execute(text("DELETE FROM users WHERE email LIKE '%@authtest.com'"))
 
     def test_auth_and_scoped_tracking_flow(self):
         # 1. Register user 1

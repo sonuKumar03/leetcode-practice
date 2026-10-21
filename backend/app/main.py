@@ -68,13 +68,20 @@ if os.path.exists(FRONTEND_DIST):
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
+    # Canonical static root; containment checks below must use realpath.
+    STATIC_ROOT = os.path.realpath(FRONTEND_DIST)
+
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Don't intercept API or docs routes
         if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
             raise HTTPException(status_code=404, detail="Not found")
-        file_path = os.path.join(FRONTEND_DIST, full_path)
+        # Resolve the target and require it to stay inside STATIC_ROOT.
+        # This blocks path traversal ("..", "%2e%2e", etc.) outside the dist dir.
+        file_path = os.path.realpath(os.path.join(STATIC_ROOT, full_path))
+        if not (file_path == STATIC_ROOT or file_path.startswith(STATIC_ROOT + os.sep)):
+            raise HTTPException(status_code=404, detail="Not found")
         if full_path and os.path.isfile(file_path):
             return FileResponse(file_path)
-        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+        return FileResponse(os.path.join(STATIC_ROOT, "index.html"))
 
