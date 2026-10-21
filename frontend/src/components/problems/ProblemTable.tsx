@@ -175,7 +175,7 @@ const FrequencyBar: React.FC<{ value: number; max: number }> = ({ value, max }) 
   return (
     <div className="relative flex items-center gap-2">
       <span
-        className={`inline-flex items-center px-2 py-0.5 rounded-md font-mono text-xs font-semibold relative z-10 ${
+        className={`inline-flex items-center px-2 py-0.5 rounded-md font-mono text-xs font-semibold relative ${
           value >= 100
             ? 'text-rose-600 dark:text-rose-400'
             : value >= 20
@@ -316,7 +316,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
       <div className="flex-1 overflow-x-auto">
         <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr className="bg-surface border-b border-border text-text-muted font-semibold text-xs sticky top-0 z-10 transition-colors">
+            <tr className="bg-surface border-b border-border text-text-muted font-semibold text-xs sticky top-0 z-20 transition-colors">
               <th className="py-3 px-4 w-12 text-center">★</th>
               <th className="py-3 px-4 w-20">#</th>
               <th className="py-3 px-4 min-w-[180px]">Title</th>
